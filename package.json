@@ -15,7 +15,6 @@
     "prisma:studio": "prisma studio",
     "apply:ai-rules": "npx @intellectronica/ruler apply"
   },
-  "packageManager": "pnpm@10.4.1",
   "dependencies": {
     "@ikas/admin-api-client": "^2.0.11",
     "@ikas/app-helpers": "^1.0.6",
