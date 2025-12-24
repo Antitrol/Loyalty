@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ikas Storefront Simulation</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f3f4f6; }
+        header { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h1 { margin: 0; color: #1f2937; }
+        p { color: #6b7280; }
+        .product { margin-top: 20px; background: white; padding: 20px; border-radius: 8px; display: inline-block; width: 200px; }
+        .btn { background: #111827; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Awesome Store</h1>
+        <p>Simulation of a customer shopping experience.</p>
+    </header>
+
+    <div class="product">
+        <img src="https://via.placeholder.com/200x150" alt="Product">
+        <h3>Cool T-Shirt</h3>
+        <p>100.00 TL</p>
+        <a href="#" class="btn">Add to Cart</a>
+    </div>
+
+    <!-- SIMULATE IKAS ENVIRONMENT -->
+    <script>
+        // In a real theme, this comes from the server
+        window.params = {
+            customerId: 'c2d78014-54ef-41ca-8aeb-443341d04cee' // Our Gold Customer
+        };
+    </script>
+
+    <!-- LOAD THE WIDGET -->
+    <script src="/loyalty-widget.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,9 @@
+[
+  {
+    "name": "name",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  }
+]

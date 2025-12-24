@@ -1,0 +1,30 @@
+[
+  {
+    "name": "eq",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "in",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "ne",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "nin",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  }
+]

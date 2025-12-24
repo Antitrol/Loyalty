@@ -1,0 +1,16 @@
+[
+  {
+    "name": "id",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "name",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  }
+]

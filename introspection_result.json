@@ -1,0 +1,133 @@
+{
+  "args": [
+    {
+      "name": "email",
+      "type": {
+        "name": "StringFilterInput",
+        "kind": "INPUT_OBJECT",
+        "ofType": null
+      }
+    },
+    {
+      "name": "id",
+      "type": {
+        "name": "StringFilterInput",
+        "kind": "INPUT_OBJECT",
+        "ofType": null
+      }
+    },
+    {
+      "name": "merchantId",
+      "type": {
+        "name": "StringFilterInput",
+        "kind": "INPUT_OBJECT",
+        "ofType": null
+      }
+    },
+    {
+      "name": "pagination",
+      "type": {
+        "name": "PaginationInput",
+        "kind": "INPUT_OBJECT",
+        "ofType": null
+      }
+    },
+    {
+      "name": "phone",
+      "type": {
+        "name": "StringFilterInput",
+        "kind": "INPUT_OBJECT",
+        "ofType": null
+      }
+    },
+    {
+      "name": "search",
+      "type": {
+        "name": "String",
+        "kind": "SCALAR",
+        "ofType": null
+      }
+    },
+    {
+      "name": "sort",
+      "type": {
+        "name": "String",
+        "kind": "SCALAR",
+        "ofType": null
+      }
+    },
+    {
+      "name": "updatedAt",
+      "type": {
+        "name": "DateFilterInput",
+        "kind": "INPUT_OBJECT",
+        "ofType": null
+      }
+    }
+  ],
+  "type": {
+    "name": null,
+    "kind": "NON_NULL",
+    "ofType": {
+      "name": "CustomerPaginationResponse",
+      "kind": "OBJECT",
+      "fields": [
+        {
+          "name": "count",
+          "type": {
+            "name": null,
+            "kind": "NON_NULL",
+            "ofType": {
+              "name": "Int",
+              "kind": "SCALAR"
+            }
+          }
+        },
+        {
+          "name": "data",
+          "type": {
+            "name": null,
+            "kind": "NON_NULL",
+            "ofType": {
+              "name": null,
+              "kind": "LIST"
+            }
+          }
+        },
+        {
+          "name": "hasNext",
+          "type": {
+            "name": null,
+            "kind": "NON_NULL",
+            "ofType": {
+              "name": "Boolean",
+              "kind": "SCALAR"
+            }
+          }
+        },
+        {
+          "name": "limit",
+          "type": {
+            "name": null,
+            "kind": "NON_NULL",
+            "ofType": {
+              "name": "Int",
+              "kind": "SCALAR"
+            }
+          }
+        },
+        {
+          "name": "page",
+          "type": {
+            "name": null,
+            "kind": "NON_NULL",
+            "ofType": {
+              "name": "Int",
+              "kind": "SCALAR"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

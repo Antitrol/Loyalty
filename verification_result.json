@@ -1,0 +1,1 @@
+﻿{"error":"Failed to find/create customer","debug":{"errors":[{"message":"Cannot query field \"customer\" on type \"Customer\".","locations":[{"line":4,"column":7}],"extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}},{"message":"Cannot query field \"userErrors\" on type \"Customer\".","locations":[{"line":10,"column":7}],"extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}}

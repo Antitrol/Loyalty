@@ -1,0 +1,23 @@
+[
+  {
+    "name": "campaignId",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "coupons",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "generateCoupons",
+    "type": {
+      "name": "GenerateCouponInput",
+      "kind": "INPUT_OBJECT"
+    }
+  }
+]

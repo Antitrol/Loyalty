@@ -1,0 +1,21 @@
+{
+  "name": "listCustomerAttribute",
+  "args": [
+    {
+      "name": "includeDeleted",
+      "type": {
+        "name": "Boolean",
+        "kind": "SCALAR"
+      }
+    }
+  ],
+  "type": {
+    "name": null,
+    "kind": "NON_NULL",
+    "ofType": {
+      "name": null,
+      "kind": "LIST",
+      "fields": null
+    }
+  }
+}

@@ -1,0 +1,324 @@
+[
+  {
+    "name": "accountStatus",
+    "type": {
+      "name": "CustomerAccountStatusEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "accountStatusUpdatedAt",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "addresses",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "attributes",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "b2bStatus",
+    "type": {
+      "name": "CustomerB2BStatusEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "birthDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "createdAt",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "customerGroupIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "customerGroups",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "customerSegmentIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "customerSequence",
+    "type": {
+      "name": "Float",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "deleted",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "email",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "emailVerifiedDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "firstName",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "firstOrderDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "fullName",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "gender",
+    "type": {
+      "name": "CustomerGenderTypeEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "id",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "ip",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "isEmailVerified",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "isPhoneVerified",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "lastName",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "lastOrderDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "lastPriceListId",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "lastStorefrontRoutingId",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "note",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "orderCount",
+    "type": {
+      "name": "Float",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "passwordUpdateDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "phone",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "phoneSubscriptionStatus",
+    "type": {
+      "name": "CustomerEmailSubscriptionStatusesEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "phoneSubscriptionStatusUpdatedAt",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "phoneVerifiedDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "preferredLanguage",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "priceListId",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "priceListRules",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "registrationSource",
+    "type": {
+      "name": "CustomerRegistrationSourceEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "smsSubscriptionStatus",
+    "type": {
+      "name": "CustomerEmailSubscriptionStatusesEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "smsSubscriptionStatusUpdatedAt",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "subscriptionStatus",
+    "type": {
+      "name": "CustomerEmailSubscriptionStatusesEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "subscriptionStatusUpdatedAt",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "tagIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "tags",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "totalOrderPrice",
+    "type": {
+      "name": "Float",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "updatedAt",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "userAgent",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  }
+]

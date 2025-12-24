@@ -1,0 +1,23 @@
+[
+  {
+    "name": "customerAttributeId",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "customerAttributeOptionId",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "value",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  }
+]

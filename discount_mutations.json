@@ -1,0 +1,17 @@
+[
+  {
+    "name": "addCouponsToCampaign"
+  },
+  {
+    "name": "createCampaign"
+  },
+  {
+    "name": "deleteCampaignList"
+  },
+  {
+    "name": "deleteCouponList"
+  },
+  {
+    "name": "updateCampaign"
+  }
+]

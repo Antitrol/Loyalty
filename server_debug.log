@@ -1,0 +1,6 @@
+[getLoyaltyProfile] Querying for ID: 4446e914-b636-4601-85e1-f9dec6635b7e
+[getLoyaltyProfile] Response: {"errors":[{"message":"Cannot query field \"name\" on type \"CustomerAttributeValue\".","locations":[{"line":10,"column":11}],"extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}
+[getLoyaltyProfile] No customer found in listCustomer data.
+[getLoyaltyProfile] Querying for ID: 4446e914-b636-4601-85e1-f9dec6635b7e
+[getLoyaltyProfile] Response: {"errors":[{"message":"Cannot query field \"name\" on type \"CustomerAttributeValue\".","locations":[{"line":10,"column":11}],"extensions":{"code":"GRAPHQL_VALIDATION_FAILED"}}]}
+[getLoyaltyProfile] No customer found in listCustomer data.

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "amount",
+    "type": {
+      "name": "Float",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "filters",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "isApplyByCartAmount",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "lineItemQuantityRange",
+    "type": {
+      "name": "CampaignMinMaxRangeFieldInput",
+      "kind": "INPUT_OBJECT"
+    }
+  },
+  {
+    "name": "priceRange",
+    "type": {
+      "name": "CampaignMinMaxRangeFieldInput",
+      "kind": "INPUT_OBJECT"
+    }
+  },
+  {
+    "name": "shouldMatchAllConditions",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  }
+]

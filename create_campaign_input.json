@@ -1,0 +1,170 @@
+[
+  {
+    "name": "applicableCustomerGroupIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "applicableCustomerIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "applicableCustomerSegmentIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "applicablePrice",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "applyCampaignToProductPrice",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "buyXThenGetY",
+    "type": {
+      "name": "BuyXThenGetYInput",
+      "kind": "INPUT_OBJECT"
+    }
+  },
+  {
+    "name": "canCombineWithOtherCampaigns",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "couponPrefix",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "couponValidityPeriod",
+    "type": {
+      "name": "Float",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "createdFor",
+    "type": {
+      "name": "CampaignCreatedForEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "currencyCodes",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "dateRange",
+    "type": {
+      "name": "CampaignDateRangeFieldInput",
+      "kind": "INPUT_OBJECT"
+    }
+  },
+  {
+    "name": "fixedDiscount",
+    "type": {
+      "name": "FixedDiscountInput",
+      "kind": "INPUT_OBJECT"
+    }
+  },
+  {
+    "name": "hasCoupon",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "includeDiscountedProducts",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "isFreeShipping",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "onlyUseCustomer",
+    "type": {
+      "name": "Boolean",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "salesChannelIds",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "tieredDiscount",
+    "type": {
+      "name": "TieredDiscountInput",
+      "kind": "INPUT_OBJECT"
+    }
+  },
+  {
+    "name": "title",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "translations",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "type",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "usageLimit",
+    "type": {
+      "name": "Int",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "usageLimitPerCustomer",
+    "type": {
+      "name": "Int",
+      "kind": "SCALAR"
+    }
+  }
+]

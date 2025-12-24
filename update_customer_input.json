@@ -1,0 +1,142 @@
+[
+  {
+    "name": "accountStatus",
+    "type": {
+      "name": "CustomerAccountStatusEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "addresses",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "b2bStatus",
+    "type": {
+      "name": "CustomerB2BStatusEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "birthDate",
+    "type": {
+      "name": "Timestamp",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "customerGroups",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "email",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "firstName",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "fullName",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "gender",
+    "type": {
+      "name": "CustomerGenderTypeEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "id",
+    "type": {
+      "name": null,
+      "kind": "NON_NULL"
+    }
+  },
+  {
+    "name": "lastName",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "note",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "phone",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "phoneSubscriptionStatus",
+    "type": {
+      "name": "CustomerEmailSubscriptionStatusesEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "preferredLanguage",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "priceListId",
+    "type": {
+      "name": "String",
+      "kind": "SCALAR"
+    }
+  },
+  {
+    "name": "priceListRules",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  },
+  {
+    "name": "smsSubscriptionStatus",
+    "type": {
+      "name": "CustomerEmailSubscriptionStatusesEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "subscriptionStatus",
+    "type": {
+      "name": "CustomerEmailSubscriptionStatusesEnum",
+      "kind": "ENUM"
+    }
+  },
+  {
+    "name": "tags",
+    "type": {
+      "name": null,
+      "kind": "LIST"
+    }
+  }
+]
