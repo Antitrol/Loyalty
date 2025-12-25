@@ -53,8 +53,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 });
     }
 
-    // Log the generated redirect URI for debugging
-    const computedRedirectUri = getRedirectUri(request.headers.get('host')!);
+    // Hardcode URI to rule out Env var issues
+    const computedRedirectUri = 'https://loyalty-8isa.vercel.app/api/oauth/callback/ikas';
     console.log('Using Redirect URI:', computedRedirectUri);
 
     // Exchange authorization code for access/refresh tokens
@@ -77,7 +77,8 @@ export async function GET(request: NextRequest) {
         error: {
           statusCode: 500,
           message: 'Failed to retrieve token',
-          details: tokenResponse
+          details: tokenResponse,
+          usedRedirectUri: computedRedirectUri
         }
       }, { status: 500 });
     }
@@ -181,6 +182,7 @@ export async function GET(request: NextRequest) {
         statusCode: error.response?.status || 500,
         message: 'Callback failed: ' + error.message,
         apiError: error.response?.data,
+        usedRedirectUri: 'https://loyalty-8isa.vercel.app/api/oauth/callback/ikas', // Hardcoded here too for clarity
         stack: error.stack
       }
     }, { status: error.response?.status || 500 });
