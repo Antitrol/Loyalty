@@ -42,6 +42,16 @@ model LoyaltyTransaction {
 
 model LoyaltyBalance {
   customerId  String   @id @unique
+  firstName   String?
+  lastName    String?
+  email       String?
   points      Int      @default(0)
   updatedAt   DateTime @updatedAt
+}
+
+model LoyaltySettings {
+  id        String   @id @default("default")
+  earnRatio Float    @default(1.0)
+  burnRatio Float    @default(0.01)
+  updatedAt DateTime @updatedAt
 }

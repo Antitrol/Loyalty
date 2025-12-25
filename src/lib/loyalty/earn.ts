@@ -36,10 +36,11 @@ export function determineTier(lifetimePoints: number): LoyaltyProfile['tier'] {
  * @param tier - The current loyalty tier of the customer
  * @returns The integer number of points to award.
  */
-export function calculatePoints(amount: number, tier: LoyaltyProfile['tier'] = 'Standard'): number {
-    const multiplier = TIER_MULTIPLIERS[tier] || 1;
-    const points = Math.floor(amount * multiplier); // Simple floor strategy
-    return Math.max(0, points); // Never return negative points
+export function calculatePoints(amount: number, tier: LoyaltyProfile['tier'] = 'Standard', earnRatio: number = 1.0): number {
+    const tierMultiplier = TIER_MULTIPLIERS[tier] || 1;
+    // Formula: Amount * BaseRatio * TierMultiplier
+    const points = Math.floor(amount * earnRatio * tierMultiplier);
+    return Math.max(0, points);
 }
 
 /**

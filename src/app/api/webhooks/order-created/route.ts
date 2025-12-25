@@ -38,12 +38,18 @@ export async function POST(req: NextRequest) {
         }
         const client = getIkas(tokens[0]);
 
-        // 1. Get current profile to determine tier
-        let profile = await getLoyaltyProfile(client, customerId);
+        // 1. Get Settings & Profile
+        const [settings, profile] = await Promise.all([
+            prisma.loyaltySettings.findUnique({ where: { id: 'default' } }),
+            getLoyaltyProfile(client, customerId)
+        ]);
+
+        const earnRatio = settings?.earnRatio || 1.0;
 
         // If no profile exists, treat as New/Standard
-        if (!profile) {
-            profile = {
+        let currentProfile = profile;
+        if (!currentProfile) {
+            currentProfile = {
                 customerId,
                 pointsBalance: 0,
                 tier: 'Standard',
@@ -52,11 +58,11 @@ export async function POST(req: NextRequest) {
         }
 
         // 2. Calculate Points
-        const pointsEarned = calculatePoints(totalFinalPrice, profile.tier);
+        const pointsEarned = calculatePoints(totalFinalPrice, currentProfile.tier, earnRatio);
 
         if (pointsEarned > 0) {
             const updatedProfile = await updateLoyaltyBalance(client, customerId, pointsEarned);
-            console.log(`Awarded ${pointsEarned} points to ${customerId}`);
+            console.log(`Awarded ${pointsEarned} points to ${customerId} (Ratio: ${earnRatio})`);
 
             // 3. Send Notification
             if (updatedProfile) {
@@ -83,9 +89,15 @@ export async function POST(req: NextRequest) {
                             where: { customerId },
                             create: {
                                 customerId,
+                                firstName: orderData.customerFirstName || orderData.firstName,
+                                lastName: orderData.customerLastName || orderData.lastName,
+                                email: customerEmail,
                                 points: pointsEarned
                             },
                             update: {
+                                firstName: orderData.customerFirstName || orderData.firstName,
+                                lastName: orderData.customerLastName || orderData.lastName,
+                                email: customerEmail,
                                 points: { increment: pointsEarned }
                             }
                         })
