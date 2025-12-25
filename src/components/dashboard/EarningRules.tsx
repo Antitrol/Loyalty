@@ -1,7 +1,12 @@
 
 import React from 'react';
 
-export default function EarningRules({ settings, setSettings }) {
+interface Props {
+    settings: any;
+    setSettings: (s: any) => void;
+}
+
+export default function EarningRules({ settings, setSettings }: Props) {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-8">
             <div>

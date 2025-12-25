@@ -19,7 +19,7 @@ async function main() {
             const balances = await prisma.loyaltyBalance.findMany();
             console.log('✅ Balances found:', balances.length);
             console.log(JSON.stringify(balances, null, 2));
-        } catch (err) {
+        } catch (err: any) {
             console.warn("Could not fetch loyalty data (Table might not exist yet?):", err.message);
         }
     } catch (e) {
