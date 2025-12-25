@@ -61,12 +61,15 @@ export async function POST(req: NextRequest) {
             // 3. Send Notification
             if (updatedProfile) {
                 // Log Transaction
+                // Log Transaction (DISABLED FOR VERCEL POSTGRES MIGRATION - TODO: Use Prisma)
+                /*
                 LocalDB.logTransaction({
                     customerId,
                     type: 'EARN',
                     points: pointsEarned,
                     amount: orderData.totalFinalPrice || 0
                 }).catch(console.error);
+                */
 
                 // Try to get email from webhook payload first, then profile (if stored)
                 // Note: getLoyaltyProfile might need to fetch email if not already there, 
