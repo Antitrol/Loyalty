@@ -9,7 +9,7 @@ export const config = {
     scope: 'read_orders,write_orders,read_products,read_inventories,write_inventories,read_customers,write_customers',
     clientId: process.env.NEXT_PUBLIC_CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    redirectUri: `${process.env.NEXT_PUBLIC_DEPLOY_URL}/api/oauth/callback/ikas`,
+    redirectUri: `${(process.env.NEXT_PUBLIC_DEPLOY_URL || '').replace(/\/$/, '')}/api/oauth/callback/ikas`,
   }
 };
 
