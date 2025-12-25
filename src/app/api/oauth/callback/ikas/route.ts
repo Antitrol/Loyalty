@@ -170,12 +170,19 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     // Log and return error response
     console.error('Callback error:', error);
+
+    // Log Axios response data if available (this contains the real error reason from Ikas)
+    if (error.response && error.response.data) {
+      console.error('Ikas API Error Response:', JSON.stringify(error.response.data, null, 2));
+    }
+
     return NextResponse.json({
       error: {
-        statusCode: 500,
+        statusCode: error.response?.status || 500,
         message: 'Callback failed: ' + error.message,
+        apiError: error.response?.data,
         stack: error.stack
       }
-    }, { status: 500 });
+    }, { status: error.response?.status || 500 });
   }
 }
