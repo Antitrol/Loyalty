@@ -51,7 +51,23 @@ model LoyaltyBalance {
 
 model LoyaltySettings {
   id        String   @id @default("default")
-  earnRatio Float    @default(1.0)
-  burnRatio Float    @default(0.01)
+  
+  // Earning Rules
+  earnPerAmount    Float   @default(1.0) // "1 Point"...
+  earnUnitAmount   Float   @default(1.0) // ... per "1 Unit Currency"
+  earnRatio        Float   @default(1.0) // Legacy support / Calculated (X/Y)
+  welcomeBonus     Int     @default(0)
+  excludeShipping  Boolean @default(false)
+  excludeDiscounted Boolean @default(false)
+
+  // Redemption Rules
+  burnRatio          Float @default(0.01) // 1 Point = X TL
+  minSpendLimit      Float @default(0)
+  maxPointUsage      Float @default(0) // 0 = Unlimited
+  
+  // Branding / Widget
+  widgetPrimaryColor String @default("#4F46E5")
+  widgetLabel        String @default("Puan") 
+  
   updatedAt DateTime @updatedAt
 }

@@ -3,36 +3,33 @@
 
 import React, { useEffect, useState } from 'react';
 import Loading from '@/components/Loading';
+import EarningRules from '@/components/dashboard/EarningRules';
+import RedemptionRules from '@/components/dashboard/RedemptionRules';
+import WidgetDesign from '@/components/dashboard/WidgetDesign';
 
-// Icons (Simple SVG components for portability)
+// Icons
 const Icons = {
-  Users: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
-  Gift: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>,
-  Settings: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
-  Chart: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+  Chart: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
+  Users: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
+  Gift: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>,
+  Fire: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>,
+  Palette: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>,
   Save: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
 };
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
-
-  // Data State
   const [settings, setSettings] = useState<any>(null);
   const [customers, setCustomers] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
-  // Simulation State
-  const [simOrderAmount, setSimOrderAmount] = useState(100);
-  const [simPoints, setSimPoints] = useState(1000);
+  // CRM Modal State
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [adjustPoints, setAdjustPoints] = useState<number>(0);
+  const [adjustReason, setAdjustReason] = useState<string>('');
 
-  // Stats
-  const totalPoints = customers.reduce((acc, c) => acc + c.points, 0);
-  const totalCustomers = customers.length;
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
@@ -57,269 +54,192 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
-      // Optional: Add a robust toast notification here instead of alert
-      alert('Ayarlar başarıyla kaydedildi!');
+      alert('Ayarlar kaydedildi!');
     } catch (e) {
-      alert('Kaydedilirken bir hata oluştu.');
+      alert('Hata!');
     } finally {
       setSaving(false);
     }
   };
 
+  const handleAdjustPoints = async () => {
+    if (!selectedCustomer) return;
+    try {
+      const res = await fetch(`/api/customers/${selectedCustomer.customerId}/adjust`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points: adjustPoints, reason: adjustReason })
+      });
+      if (res.ok) {
+        alert('Puan güncellendi.');
+        setSelectedCustomer(null);
+        fetchData(); // Refresh list
+      }
+    } catch (e) {
+      alert('Hata oluştu.');
+    }
+  };
+
   if (loading) return <Loading />;
 
+  // Tabs Configuration
+  const tabs = [
+    { id: 'overview', label: 'Genel Bakış', icon: Icons.Chart },
+    { id: 'earning', label: 'Kazanım Kuralları', icon: Icons.Gift },
+    { id: 'burning', label: 'Harcama Ayarları', icon: Icons.Fire },
+    { id: 'design', label: 'Tasarım', icon: Icons.Palette },
+    { id: 'crm', label: 'Müşteriler (CRM)', icon: Icons.Users },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
-      {/* Top Navigation Bar */}
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pb-20">
+      {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-lg text-white">
-              <Icons.Gift />
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Sadakat Yönetimi</h1>
+            <div className="bg-indigo-600 p-2 rounded-lg text-white"><Icons.Gift /></div>
+            <h1 className="text-xl font-bold text-gray-900">Loyalty Manager</h1>
           </div>
-          <div className="flex items-center space-x-1">
-            {/* Tab Navigation */}
-            {[
-              { id: 'overview', label: 'Genel Bakış', icon: Icons.Chart },
-              { id: 'customers', label: 'Müşteriler', icon: Icons.Users },
-              { id: 'settings', label: 'Ayarlar', icon: Icons.Settings },
-            ].map((tab) => (
+          <div className="flex space-x-1 overflow-x-auto">
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 ${activeTab === tab.id
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
                     ? 'bg-indigo-50 text-indigo-700 shadow-sm'
                     : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                   }`}
               >
                 <tab.icon />
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* OVERVIEW TAB */}
+        {/* OVERVIEW */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Stat Card 1 */}
-              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-gray-500 text-sm font-medium uppercase tracking-wider">Toplam Müşteri</h3>
-                  <div className="bg-blue-50 text-blue-600 p-2 rounded-full"><Icons.Users /></div>
-                </div>
-                <p className="text-4xl font-extrabold text-gray-900">{totalCustomers}</p>
-                <p className="text-sm text-gray-400 mt-2">Sisteme kayıtlı üye sayısı</p>
-              </div>
-
-              {/* Stat Card 2 */}
-              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-gray-500 text-sm font-medium uppercase tracking-wider">Dağıtılan Puan</h3>
-                  <div className="bg-emerald-50 text-emerald-600 p-2 rounded-full"><Icons.Gift /></div>
-                </div>
-                <p className="text-4xl font-extrabold text-gray-900">{totalPoints.toLocaleString()}</p>
-                <p className="text-sm text-gray-400 mt-2">Müşterilerin cüzdanındaki toplam bakiye</p>
-              </div>
-
-              {/* Stat Card 3 */}
-              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-gray-500 text-sm font-medium uppercase tracking-wider">Puan Değeri</h3>
-                  <div className="bg-amber-50 text-amber-600 p-2 rounded-full"><Icons.Chart /></div>
-                </div>
-                <div className="flex items-end gap-2">
-                  <p className="text-4xl font-extrabold text-gray-900">{settings?.earnRatio}x</p>
-                </div>
-                <p className="text-sm text-gray-400 mt-2">Her 1 TL harcamada kazanılan puan</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+              <h3 className="text-gray-500 text-sm font-medium uppercase">Toplam Müşteri</h3>
+              <p className="text-4xl font-extrabold text-gray-900 mt-2">{customers.length}</p>
+            </div>
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+              <h3 className="text-gray-500 text-sm font-medium uppercase">Dağıtılan Puan</h3>
+              <p className="text-4xl font-extrabold text-indigo-600 mt-2">
+                {customers.reduce((acc, c) => acc + c.points, 0).toLocaleString()}
+              </p>
             </div>
           </div>
         )}
 
-        {/* CUSTOMERS TAB */}
-        {activeTab === 'customers' && (
+        {/* RULE TABS */}
+        {(activeTab === 'earning' || activeTab === 'burning' || activeTab === 'design') && (
+          <div className="max-w-4xl mx-auto">
+            {activeTab === 'earning' && <EarningRules settings={settings} setSettings={setSettings} />}
+            {activeTab === 'burning' && <RedemptionRules settings={settings} setSettings={setSettings} />}
+            {activeTab === 'design' && <WidgetDesign settings={settings} setSettings={setSettings} />}
+
+            <div className="mt-6 flex justify-end sticky bottom-6">
+              <button
+                onClick={saveSettings}
+                disabled={saving}
+                className="flex items-center py-3 px-6 border border-transparent rounded-full shadow-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 transition-transform active:scale-95"
+              >
+                <Icons.Save />
+                <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* CRM TAB */}
+        {activeTab === 'crm' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-gray-800">Müşteri Listesi</h2>
-              <span className="text-sm text-gray-500">{customers.length} Kayıt Bulundu</span>
+              <input type="text" placeholder="Ara..." className="border rounded px-3 py-1 text-sm" />
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Müşteri Bilgisi</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Puan Bakiyesi</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Son İşlem Tarihi</th>
-                    <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">İşlem</th>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Müşteri</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Puan</th>
+                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">İşlem</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {customers.map((cust) => (
+                  <tr key={cust.customerId} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">{cust.firstName} {cust.lastName}</div>
+                      <div className="text-sm text-gray-500">{cust.email}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">
+                        {cust.points} Puan
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => setSelectedCustomer(cust)}
+                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                      >
+                        Düzenle
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {customers.map((customer) => (
-                    <tr key={customer.customerId} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
-                            {(customer.firstName?.[0] || customer.email?.[0] || '?').toUpperCase()}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {customer.firstName ? `${customer.firstName} ${customer.lastName || ''}` : 'İsimsiz Müşteri'}
-                            </div>
-                            <div className="text-sm text-gray-500">{customer.email || 'Email yok'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          {customer.points} Puan
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(customer.updatedAt).toLocaleDateString("tr-TR", { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-indigo-600 hover:text-indigo-900">Detay</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* SETTINGS TAB */}
-        {activeTab === 'settings' && settings && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* ADJUSTMENT MODAL */}
+        {selectedCustomer && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+              <h3 className="text-lg font-bold mb-4">Puan Düzenle: {selectedCustomer.firstName}</h3>
 
-            {/* SETTINGS FORM */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="mb-6 pb-6 border-b border-gray-100">
-                <h2 className="text-lg font-bold text-gray-900 mb-1">Kuralları Yapılandır</h2>
-                <p className="text-sm text-gray-500">Puan kazanma ve harcama oranlarını buradan yönetin.</p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Eklenecek/Silinecek Puan</label>
+                <input
+                  type="number"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="-50 veya 100"
+                  onChange={(e) => setAdjustPoints(parseInt(e.target.value))}
+                />
+                <p className="text-xs text-gray-500 mt-1">Silmek için başına eksi (-) koyun.</p>
               </div>
 
-              <div className="space-y-6">
-                {/* Earn Ratio Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Kazanma Oranı (Earn Ratio)
-                  </label>
-                  <p className="text-xs text-gray-500 mb-2">1 TL sipariş için kaç puan verilecek?</p>
-                  <div className="relative rounded-md shadow-sm">
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={settings.earnRatio}
-                      onChange={(e) => setSettings({ ...settings, earnRatio: parseFloat(e.target.value) || 0 })}
-                      className="block w-full pr-12 sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">x Katı</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700">Sebep</label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="Örn: Telafi, İade..."
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                />
+              </div>
 
-                {/* Burn Ratio Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Harcama Değeri (Burn Ratio)
-                  </label>
-                  <p className="text-xs text-gray-500 mb-2">1 Puan kaç TL indirim değerindedir?</p>
-                  <div className="relative rounded-md shadow-sm">
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={settings.burnRatio}
-                      onChange={(e) => setSettings({ ...settings, burnRatio: parseFloat(e.target.value) || 0 })}
-                      className="block w-full pr-12 sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-3 border"
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 sm:text-sm">TL / Puan</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <button
-                    onClick={saveSettings}
-                    disabled={saving}
-                    className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-70 transition-colors"
-                  >
-                    <Icons.Save />
-                    <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
-                  </button>
-                </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setSelectedCustomer(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={handleAdjustPoints}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                >
+                  Kaydet
+                </button>
               </div>
             </div>
-
-            {/* SIMULATOR (PLAYGROUND) */}
-            <div className="space-y-6">
-              {/* Earn Simulator */}
-              <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl shadow-lg border border-transparent p-6 text-white text-center sm:text-left">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  🧪 Kazanma Simülatörü
-                </h3>
-                <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-                  <label className="block text-xs font-semibold text-indigo-100 uppercase tracking-wider mb-2">
-                    Deneme Sipariş Tutarı
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="number"
-                      value={simOrderAmount}
-                      onChange={(e) => setSimOrderAmount(parseFloat(e.target.value) || 0)}
-                      className="block w-full bg-white/20 border border-white/30 rounded-md text-white placeholder-white/50 focus:ring-white focus:border-white p-2"
-                    />
-                    <span className="text-lg font-bold">TL</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex items-center justify-between bg-white/20 rounded-lg p-4">
-                  <span className="text-indigo-100 font-medium">Müşteri Kazanır:</span>
-                  <span className="text-3xl font-extrabold text-white">
-                    {Math.floor(simOrderAmount * (settings.earnRatio || 0))} <span className="text-sm font-normal opacity-80">Puan</span>
-                  </span>
-                </div>
-                <p className="text-xs text-indigo-200 mt-2 text-center">
-                  *Hesap: {simOrderAmount} TL x {settings.earnRatio} (Oran)
-                </p>
-              </div>
-
-              {/* Burn Simulator */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  🔥 Harcama Simülatörü
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Müşterinin Puanı
-                    </label>
-                    <input
-                      type="number"
-                      value={simPoints}
-                      onChange={(e) => setSimPoints(parseFloat(e.target.value) || 0)}
-                      className="block w-full sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2 border"
-                    />
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-4 border border-green-100 flex justify-between items-center">
-                    <span className="text-green-800 font-medium">İndirim Tutarı:</span>
-                    <span className="text-2xl font-bold text-green-700">
-                      {(simPoints * (settings.burnRatio || 0)).toFixed(2)} TL
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
         )}
 
