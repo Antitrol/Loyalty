@@ -13,7 +13,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "apply:ai-rules": "npx @intellectronica/ruler apply"
+    "apply:ai-rules": "npx @intellectronica/ruler apply",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ikas/admin-api-client": "^2.0.11",
