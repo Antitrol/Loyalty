@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     const { code, state, signature } = validation.data;
 
     // Validate code signature
-    if (signature &&!TokenHelpers.validateCodeSignature(code, signature, config.oauth.clientSecret!)) {
+    if (signature && !TokenHelpers.validateCodeSignature(code, signature, config.oauth.clientSecret!)) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
@@ -53,13 +53,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 });
     }
 
+    // Log the generated redirect URI for debugging
+    const computedRedirectUri = getRedirectUri(request.headers.get('host')!);
+    console.log('Using Redirect URI:', computedRedirectUri);
+
     // Exchange authorization code for access/refresh tokens
     const tokenResponse = await OAuthAPI.getTokenWithAuthorizationCode(
       {
         code: code as string,
         client_id: config.oauth.clientId!,
         client_secret: config.oauth.clientSecret!,
-        redirect_uri: getRedirectUri(request.headers.get('host')!),
+        redirect_uri: computedRedirectUri,
       },
       {
         storeName: (session.storeName || 'api') as string,
@@ -68,7 +72,14 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.data) {
       // Failed to get token
-      return NextResponse.json({ error: { statusCode: 500, message: 'Failed to retrieve token' } }, { status: 500 });
+      console.error("Token Exchange Failed:", JSON.stringify(tokenResponse));
+      return NextResponse.json({
+        error: {
+          statusCode: 500,
+          message: 'Failed to retrieve token',
+          details: tokenResponse
+        }
+      }, { status: 500 });
     }
 
     // Prepare a temporary token object
@@ -97,9 +108,14 @@ export async function GET(request: NextRequest) {
       !authorizedAppResponse.data.getAuthorizedApp ||
       !merchantResponse.data.getMerchant
     ) {
+      console.error("API Fetch Failed:", JSON.stringify({ merchant: merchantResponse, app: authorizedAppResponse }));
       return NextResponse.json(
         {
-          error: { statusCode: 403, message: 'Unable to retrieve merchant or authorized app' },
+          error: {
+            statusCode: 403,
+            message: 'Unable to retrieve merchant or authorized app',
+            debug: { merchantSuccess: merchantResponse.isSuccess, appSuccess: authorizedAppResponse.isSuccess }
+          },
         },
         { status: 403 },
       );
@@ -121,7 +137,9 @@ export async function GET(request: NextRequest) {
     } as AuthToken;
 
     // Store the token for future use
+    console.log("Saving token to DB...");
     await AuthTokenManager.put(token);
+    console.log("Token saved successfully.");
 
     // Update session with new merchant and app IDs, clear state, and set expiration
     session.expiresAt = new Date(Date.now() + 3600 * 1000);
@@ -149,9 +167,15 @@ export async function GET(request: NextRequest) {
 
     // Redirect the user to the callback URL
     return NextResponse.redirect(new URL(`/callback?${callbackUrl.toString()}`, getRedirectUri(request.headers.get('host')!)));
-  } catch (error) {
+  } catch (error: any) {
     // Log and return error response
     console.error('Callback error:', error);
-    return NextResponse.json({ error: { statusCode: 500, message: 'Callback failed' } }, { status: 500 });
+    return NextResponse.json({
+      error: {
+        statusCode: 500,
+        message: 'Callback failed: ' + error.message,
+        stack: error.stack
+      }
+    }, { status: 500 });
   }
 }
