@@ -28,3 +28,20 @@ model AuthToken {
   refreshToken    String
   scope           String?
 }
+
+model LoyaltyTransaction {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  
+  customerId  String
+  type        String   // EARN, REDEEM, REFUND
+  points      Int
+  amount      Float?   // Related order amount or discount value
+  metadata    Json?    // Store extra details like orderId
+}
+
+model LoyaltyBalance {
+  customerId  String   @id @unique
+  points      Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}

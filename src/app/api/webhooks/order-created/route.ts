@@ -4,9 +4,9 @@ import { verifyIkasWebhook } from '@/lib/webhooks/verify';
 import { calculatePoints } from '@/lib/loyalty/earn';
 import { getLoyaltyProfile, updateLoyaltyBalance } from '@/lib/loyalty/attributes';
 import { NotificationService } from '@/lib/notifications/service';
-import { LocalDB } from '@/lib/db/local-db';
 import { AuthTokenManager } from '@/models/auth-token/manager';
 import { getIkas } from '@/helpers/api-helpers';
+import { prisma } from '@/lib/prisma'; // Import Prisma
 
 export async function POST(req: NextRequest) {
     try {
@@ -60,21 +60,41 @@ export async function POST(req: NextRequest) {
 
             // 3. Send Notification
             if (updatedProfile) {
-                // Log Transaction
-                // Log Transaction (DISABLED FOR VERCEL POSTGRES MIGRATION - TODO: Use Prisma)
-                /*
-                LocalDB.logTransaction({
-                    customerId,
-                    type: 'EARN',
-                    points: pointsEarned,
-                    amount: orderData.totalFinalPrice || 0
-                }).catch(console.error);
-                */
-
                 // Try to get email from webhook payload first, then profile (if stored)
-                // Note: getLoyaltyProfile might need to fetch email if not already there, 
-                // but for now relying on what we have or payload.
                 const customerEmail = orderData.customerEmail || orderData.email || "customer@example.com";
+
+                // Log Transaction to Database (Replaces LocalDB)
+                try {
+                    await prisma.$transaction([
+                        prisma.loyaltyTransaction.create({
+                            data: {
+                                customerId,
+                                type: 'EARN',
+                                points: pointsEarned,
+                                amount: orderData.totalFinalPrice || 0,
+                                metadata: {
+                                    orderId: orderData.id,
+                                    currency: orderData.currency || 'TRY',
+                                    email: customerEmail
+                                }
+                            }
+                        }),
+                        prisma.loyaltyBalance.upsert({
+                            where: { customerId },
+                            create: {
+                                customerId,
+                                points: pointsEarned
+                            },
+                            update: {
+                                points: { increment: pointsEarned }
+                            }
+                        })
+                    ]);
+                    console.log(`✅ Persisted ${pointsEarned} points for ${customerId} to DB.`);
+                } catch (dbError) {
+                    console.error("Failed to persist points to DB:", dbError);
+                    // Verify if we should throw or continue (Notification is already sent)
+                }
 
                 // Fire and forget notification
                 NotificationService.sendPointsEarned(customerEmail, pointsEarned, updatedProfile.pointsBalance).catch(console.error);
