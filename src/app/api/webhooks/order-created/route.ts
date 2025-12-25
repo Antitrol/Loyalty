@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyIkasWebhook } from '@/lib/webhooks/verify';
-import { calculatePoints } from '@/lib/loyalty/earn';
+import { calculatePoints, calculateLineItemPoints } from '@/lib/loyalty/earn';
 import { getLoyaltyProfile, updateLoyaltyBalance } from '@/lib/loyalty/attributes';
 import { NotificationService } from '@/lib/notifications/service';
 import { AuthTokenManager } from '@/models/auth-token/manager';
@@ -48,7 +48,8 @@ export async function POST(req: NextRequest) {
             earnUnitAmount: 1,
             excludeShipping: false,
             excludeDiscounted: false,
-            welcomeBonus: 0
+            welcomeBonus: 0,
+            categoryBonuses: null
         };
 
         // If no profile exists, treat as New
@@ -85,11 +86,41 @@ export async function POST(req: NextRequest) {
         calculationAmount = Math.max(0, calculationAmount);
 
         // 3. Calculate Points with New Formula
-        let pointsEarned = calculatePoints(calculationAmount, currentProfile.tier, safeSettings);
+        let pointsEarned = 0;
+        const hasCategoryRules = (safeSettings as any).categoryBonuses && Object.keys((safeSettings as any).categoryBonuses).length > 0;
+        const lineItems = orderData.orderLineItems || [];
+
+        if (hasCategoryRules && lineItems.length > 0) {
+            console.log("⚡ Applying Category-Based Rules...");
+            let totalItemPoints = 0;
+
+            for (const item of lineItems) {
+                const catName = item.product?.categoryName || item.categoryName || "";
+                const categories = catName ? [catName] : [];
+                // Use finalPrice of item
+                const itemPrice = item.finalPrice || item.price || 0;
+
+                const p = calculateLineItemPoints(itemPrice, categories, safeSettings);
+                totalItemPoints += p;
+            }
+
+            // Apply Tier Multiplier to total base points
+            const tierMultiplier = (currentProfile.tier === 'Platinum' ? 2.0 :
+                currentProfile.tier === 'Gold' ? 1.5 :
+                    currentProfile.tier === 'Silver' ? 1.25 :
+                        currentProfile.tier === 'Bronze' ? 1.1 : 1.0);
+
+            pointsEarned = Math.floor(totalItemPoints * tierMultiplier);
+        } else {
+            // Standard Calculation
+            pointsEarned = calculatePoints(calculationAmount, currentProfile.tier, safeSettings);
+        }
+
         let logMetadata: any = {
             orderId: orderData.id,
             currency: orderData.currency || 'TRY',
-            calculationAmount: calculationAmount
+            calculationAmount: calculationAmount,
+            appliedCategoryRules: hasCategoryRules
         };
 
         // 4. Welcome Bonus

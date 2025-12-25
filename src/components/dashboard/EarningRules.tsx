@@ -70,6 +70,67 @@ export default function EarningRules({ settings, setSettings }: Props) {
                 </div>
             </div>
 
+            {/* Category Bonuses (New) */}
+            <div className="bg-purple-50 rounded-lg p-5 border border-purple-100">
+                <label className="block text-sm font-semibold text-purple-900 mb-3">Kategori Bazlı Bonuslar (Katsayı)</label>
+                <p className="text-xs text-purple-700 mb-4">
+                    Belirli kategorilerdeki ürünler için ekstra puan verin. Örneğin "Aksesuar" kategorisi için 2 yazarsanız, o ürünlerden 2 kat puan kazanılır.
+                </p>
+
+                <div className="flex gap-2 mb-4">
+                    <input
+                        id="catName"
+                        type="text"
+                        placeholder="Kategori Adı (Örn: Aksesuar)"
+                        className="flex-1 border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white"
+                    />
+                    <input
+                        id="catGl"
+                        type="number"
+                        placeholder="Katsayı (Örn: 2)"
+                        className="w-24 border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white"
+                    />
+                    <button
+                        onClick={() => {
+                            const nameInput = document.getElementById('catName') as HTMLInputElement;
+                            const valInput = document.getElementById('catGl') as HTMLInputElement;
+                            const name = nameInput.value;
+                            const val = parseFloat(valInput.value);
+                            if (name && val) {
+                                const current = settings.categoryBonuses || {};
+                                setSettings({ ...settings, categoryBonuses: { ...current, [name]: val } });
+                                nameInput.value = '';
+                                valInput.value = '';
+                            }
+                        }}
+                        className="bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-purple-700"
+                    >
+                        Ekle
+                    </button>
+                </div>
+
+                <div className="space-y-2">
+                    {Object.entries(settings.categoryBonuses || {}).map(([cat, val]: [string, any]) => (
+                        <div key={cat} className="flex justify-between items-center bg-white p-2 rounded border border-purple-100 shadow-sm">
+                            <span className="text-sm font-medium text-gray-700">{cat}</span>
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-bold text-purple-600">{val}x Puan</span>
+                                <button
+                                    onClick={() => {
+                                        const newBonuses = { ...settings.categoryBonuses };
+                                        delete newBonuses[cat];
+                                        setSettings({ ...settings, categoryBonuses: newBonuses });
+                                    }}
+                                    className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                    Sil
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             {/* Exclusions */}
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">Hariç Tutulacaklar</label>
