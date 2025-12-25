@@ -167,7 +167,9 @@ export async function GET(request: NextRequest) {
     callbackUrl.set('authorizedAppId', authorizedAppId);
 
     // Redirect the user to the callback URL
-    return NextResponse.redirect(new URL(`/callback?${callbackUrl.toString()}`, getRedirectUri(request.headers.get('host')!)));
+    // Hardcoded base URL to prevent Invalid URL error if Env var is missing
+    const baseUrl = 'https://loyalty-8isa.vercel.app';
+    return NextResponse.redirect(new URL(`/callback?${callbackUrl.toString()}`, baseUrl));
   } catch (error: any) {
     // Log and return error response
     console.error('Callback error:', error);
