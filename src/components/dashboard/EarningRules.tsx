@@ -7,6 +7,17 @@ interface Props {
 }
 
 export default function EarningRules({ settings, setSettings }: Props) {
+    const [categories, setCategories] = React.useState<any[]>([]);
+
+    React.useEffect(() => {
+        fetch('/api/categories')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) setCategories(data);
+            })
+            .catch(err => console.error("Failed to load categories", err));
+    }, []);
+
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-8">
             <div>
@@ -78,12 +89,16 @@ export default function EarningRules({ settings, setSettings }: Props) {
                 </p>
 
                 <div className="flex gap-2 mb-4">
-                    <input
+                    <select
                         id="catName"
-                        type="text"
-                        placeholder="Kategori Adı (Örn: Aksesuar)"
                         className="flex-1 border-gray-300 rounded-md shadow-sm text-sm p-2 bg-white"
-                    />
+                        defaultValue=""
+                    >
+                        <option value="" disabled>Kategori Seçiniz</option>
+                        {categories.map((c: any) => (
+                            <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                    </select>
                     <input
                         id="catGl"
                         type="number"
@@ -92,7 +107,7 @@ export default function EarningRules({ settings, setSettings }: Props) {
                     />
                     <button
                         onClick={() => {
-                            const nameInput = document.getElementById('catName') as HTMLInputElement;
+                            const nameInput = document.getElementById('catName') as HTMLSelectElement;
                             const valInput = document.getElementById('catGl') as HTMLInputElement;
                             const name = nameInput.value;
                             const val = parseFloat(valInput.value);
