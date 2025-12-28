@@ -18,7 +18,7 @@ const Icons = {
 };
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('settings');
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<any>(null);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -83,9 +83,9 @@ export default function Dashboard() {
   if (loading) return <Loading />;
 
   // Tabs Configuration
-  // Tabs Configuration
   const tabs = [
-    { id: 'overview', label: 'Genel Bakış', icon: Icons.Chart },
+    { id: 'settings', label: 'Ayarlar', icon: Icons.Palette },
+    { id: 'stats', label: 'İstatistikler', icon: Icons.Chart },
     { id: 'crm', label: 'Müşteriler (CRM)', icon: Icons.Users },
   ];
 
@@ -118,29 +118,9 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 py-8">
 
-        {/* OVERVIEW */}
-        {activeTab === 'overview' && (
-          <div className="space-y-10">
-            {/* Stats Section */}
-            <div>
-              <h2 className="text-xl font-bold text-gray-800 mb-4">İstatistikler</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                  <h3 className="text-gray-500 text-sm font-medium uppercase">Toplam Müşteri</h3>
-                  <p className="text-4xl font-extrabold text-gray-900 mt-2">{customers.length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                  <h3 className="text-gray-500 text-sm font-medium uppercase">Dağıtılan Puan</h3>
-                  <p className="text-4xl font-extrabold text-indigo-600 mt-2">
-                    {customers.reduce((acc, c) => acc + c.points, 0).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <hr className="border-gray-200" />
-
-            {/* Sections Container for Max Width */}
+        {/* SETTINGS TAB (Configuration) */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
               {/* Left Column: Rules */}
@@ -162,7 +142,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Right Column: Design & Save */}
+              {/* Right Column: Design */}
               <div className="space-y-8">
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
@@ -171,20 +151,39 @@ export default function Dashboard() {
                   </div>
                   <WidgetDesign settings={settings} setSettings={setSettings} />
                 </div>
-
-                {/* Sticky Save Button for Desktop */}
-                <div className="sticky bottom-6 flex justify-end">
-                  <button
-                    onClick={saveSettings}
-                    disabled={saving}
-                    className="w-full md:w-auto flex items-center justify-center py-4 px-8 border border-transparent rounded-xl shadow-xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 transition-all transform active:scale-95"
-                  >
-                    <Icons.Save />
-                    <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
-                  </button>
-                </div>
               </div>
 
+            </div>
+
+            {/* Sticky Save Button (Global for Settings) */}
+            <div className="sticky bottom-6 flex justify-end">
+              <button
+                onClick={saveSettings}
+                disabled={saving}
+                className="w-full md:w-auto flex items-center justify-center py-4 px-8 border border-transparent rounded-xl shadow-xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 transition-all transform active:scale-95"
+              >
+                <Icons.Save />
+                <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* STATS TAB */}
+        {activeTab === 'stats' && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">İstatistikler</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h3 className="text-gray-500 text-sm font-medium uppercase">Toplam Müşteri</h3>
+                <p className="text-4xl font-extrabold text-gray-900 mt-2">{customers.length}</p>
+              </div>
+              <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                <h3 className="text-gray-500 text-sm font-medium uppercase">Dağıtılan Puan</h3>
+                <p className="text-4xl font-extrabold text-indigo-600 mt-2">
+                  {customers.reduce((acc, c) => acc + c.points, 0).toLocaleString()}
+                </p>
+              </div>
             </div>
           </div>
         )}
