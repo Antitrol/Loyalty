@@ -83,11 +83,9 @@ export default function Dashboard() {
   if (loading) return <Loading />;
 
   // Tabs Configuration
+  // Tabs Configuration
   const tabs = [
     { id: 'overview', label: 'Genel Bakış', icon: Icons.Chart },
-    { id: 'earning', label: 'Kazanım Kuralları', icon: Icons.Gift },
-    { id: 'burning', label: 'Harcama Ayarları', icon: Icons.Fire },
-    { id: 'design', label: 'Tasarım', icon: Icons.Palette },
     { id: 'crm', label: 'Müşteriler (CRM)', icon: Icons.Users },
   ];
 
@@ -106,8 +104,8 @@ export default function Dashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
-                    ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                   }`}
               >
                 <tab.icon />
@@ -122,36 +120,71 @@ export default function Dashboard() {
 
         {/* OVERVIEW */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-              <h3 className="text-gray-500 text-sm font-medium uppercase">Toplam Müşteri</h3>
-              <p className="text-4xl font-extrabold text-gray-900 mt-2">{customers.length}</p>
+          <div className="space-y-10">
+            {/* Stats Section */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">İstatistikler</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                  <h3 className="text-gray-500 text-sm font-medium uppercase">Toplam Müşteri</h3>
+                  <p className="text-4xl font-extrabold text-gray-900 mt-2">{customers.length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                  <h3 className="text-gray-500 text-sm font-medium uppercase">Dağıtılan Puan</h3>
+                  <p className="text-4xl font-extrabold text-indigo-600 mt-2">
+                    {customers.reduce((acc, c) => acc + c.points, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-              <h3 className="text-gray-500 text-sm font-medium uppercase">Dağıtılan Puan</h3>
-              <p className="text-4xl font-extrabold text-indigo-600 mt-2">
-                {customers.reduce((acc, c) => acc + c.points, 0).toLocaleString()}
-              </p>
-            </div>
-          </div>
-        )}
 
-        {/* RULE TABS */}
-        {(activeTab === 'earning' || activeTab === 'burning' || activeTab === 'design') && (
-          <div className="max-w-4xl mx-auto">
-            {activeTab === 'earning' && <EarningRules settings={settings} setSettings={setSettings} />}
-            {activeTab === 'burning' && <RedemptionRules settings={settings} setSettings={setSettings} />}
-            {activeTab === 'design' && <WidgetDesign settings={settings} setSettings={setSettings} />}
+            <hr className="border-gray-200" />
 
-            <div className="mt-6 flex justify-end sticky bottom-6">
-              <button
-                onClick={saveSettings}
-                disabled={saving}
-                className="flex items-center py-3 px-6 border border-transparent rounded-full shadow-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 transition-transform active:scale-95"
-              >
-                <Icons.Save />
-                <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
-              </button>
+            {/* Sections Container for Max Width */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
+              {/* Left Column: Rules */}
+              <div className="space-y-8">
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600"><Icons.Gift /></div>
+                    <h2 className="text-lg font-bold text-gray-800">Kazanım Kuralları</h2>
+                  </div>
+                  <EarningRules settings={settings} setSettings={setSettings} />
+                </div>
+
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+                    <div className="p-2 bg-orange-50 rounded-lg text-orange-600"><Icons.Fire /></div>
+                    <h2 className="text-lg font-bold text-gray-800">Harcama Ayarları</h2>
+                  </div>
+                  <RedemptionRules settings={settings} setSettings={setSettings} />
+                </div>
+              </div>
+
+              {/* Right Column: Design & Save */}
+              <div className="space-y-8">
+                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><Icons.Palette /></div>
+                    <h2 className="text-lg font-bold text-gray-800">Widget Tasarımı</h2>
+                  </div>
+                  <WidgetDesign settings={settings} setSettings={setSettings} />
+                </div>
+
+                {/* Sticky Save Button for Desktop */}
+                <div className="sticky bottom-6 flex justify-end">
+                  <button
+                    onClick={saveSettings}
+                    disabled={saving}
+                    className="w-full md:w-auto flex items-center justify-center py-4 px-8 border border-transparent rounded-xl shadow-xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 transition-all transform active:scale-95"
+                  >
+                    <Icons.Save />
+                    <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
         )}
