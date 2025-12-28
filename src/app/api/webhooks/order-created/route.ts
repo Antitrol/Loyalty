@@ -105,10 +105,16 @@ export async function POST(req: NextRequest) {
             }
 
             // Apply Tier Multiplier to total base points
-            const tierMultiplier = (currentProfile.tier === 'Platinum' ? 2.0 :
-                currentProfile.tier === 'Gold' ? 1.5 :
-                    currentProfile.tier === 'Silver' ? 1.25 :
-                        currentProfile.tier === 'Bronze' ? 1.1 : 1.0);
+            // Multiplier from dynamic settings (or default if missing)
+            const tiers = (safeSettings as any).tiers || [
+                { name: 'Standard', multiplier: 1 },
+                { name: 'Bronze', multiplier: 1.1 },
+                { name: 'Silver', multiplier: 1.25 },
+                { name: 'Gold', multiplier: 1.5 },
+                { name: 'Platinum', multiplier: 2.0 },
+            ];
+            const activeTier = tiers.find((t: any) => t.name === currentProfile.tier);
+            const tierMultiplier = activeTier ? activeTier.multiplier : 1.0;
 
             pointsEarned = Math.floor(totalItemPoints * tierMultiplier);
         } else {
@@ -133,7 +139,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (pointsEarned > 0) {
-            const updatedProfile = await updateLoyaltyBalance(client, customerId, pointsEarned);
+            const updatedProfile = await updateLoyaltyBalance(client, customerId, pointsEarned, undefined, safeSettings);
 
             // Try to get email
             const customerEmail = orderData.customerEmail || orderData.email || "customer@example.com";

@@ -1,31 +1,34 @@
 
 import { LoyaltyProfile } from './types';
 
-export const TIER_MULTIPLIERS: Record<LoyaltyProfile['tier'], number> = {
-    'Standard': 1,
-    'Bronze': 1.1,
-    'Silver': 1.25,
-    'Gold': 1.5,
-    'Platinum': 2.0,
-};
 
-// Tier Thresholds (Lifetime Points)
-export const TIER_THRESHOLDS = {
-    Standard: 0,
-    Bronze: 5000,
-    Silver: 10000,
-    Gold: 25000,
-    Platinum: 50000
-};
+
+// Fallback defaults if settings are missing
+const DEFAULT_TIERS = [
+    { name: 'Standard', threshold: 0, multiplier: 1 },
+    { name: 'Bronze', threshold: 5000, multiplier: 1.1 },
+    { name: 'Silver', threshold: 10000, multiplier: 1.25 },
+    { name: 'Gold', threshold: 25000, multiplier: 1.5 },
+    { name: 'Platinum', threshold: 50000, multiplier: 2.0 },
+];
 
 /**
- * Calculates current tier based on lifetime points.
+ * Calculates current tier based on lifetime points and settings.
  */
-export function determineTier(lifetimePoints: number): LoyaltyProfile['tier'] {
-    if (lifetimePoints >= TIER_THRESHOLDS.Platinum) return 'Platinum';
-    if (lifetimePoints >= TIER_THRESHOLDS.Gold) return 'Gold';
-    if (lifetimePoints >= TIER_THRESHOLDS.Silver) return 'Silver';
-    if (lifetimePoints >= TIER_THRESHOLDS.Bronze) return 'Bronze';
+export function determineTier(lifetimePoints: number, settings?: any): LoyaltyProfile['tier'] {
+    const tiers = settings?.tiers || DEFAULT_TIERS;
+
+    // Sort tiers by threshold descending to find the highest matching one
+    const sortedTiers = [...tiers].sort((a, b) => b.threshold - a.threshold);
+
+    for (const tier of sortedTiers) {
+        if (lifetimePoints >= tier.threshold) {
+            // Type assertion since our tier names match the types, 
+            // but dynamic settings could theoretically introduce others.
+            // Ideally we'd update types to string, but for now we cast.
+            return tier.name as LoyaltyProfile['tier'];
+        }
+    }
     return 'Standard';
 }
 
@@ -45,7 +48,6 @@ export function calculateLineItemPoints(
     const earnPerAmount = settings.earnPerAmount || 1.0;
 
     // Check for Category Multiplier
-    // We take the MAX multiplier if an item belongs to multiple boosted categories
     let categoryMultiplier = 1.0;
     if (settings.categoryBonuses && categories.length > 0) {
         for (const cat of categories) {
@@ -64,20 +66,17 @@ export function calculateLineItemPoints(
 
 /**
  * Calculates points to be awarded for a given transaction.
- * 
- * @param amount - The total final price of the order (in TL/USD etc.)
- * @param tier - The current loyalty tier of the customer
- * @returns The integer number of points to award.
  */
 export function calculatePoints(
     amount: number,
     tier: LoyaltyProfile['tier'] = 'Standard',
-    settings: { earnPerAmount: number; earnUnitAmount: number; earnRatio?: number }
+    settings: { earnPerAmount: number; earnUnitAmount: number; earnRatio?: number; tiers?: any[] }
 ): number {
-    const tierMultiplier = TIER_MULTIPLIERS[tier] || 1;
+    const tiers = settings.tiers || DEFAULT_TIERS;
+    const currentTier = tiers.find((t: any) => t.name === tier);
+    const tierMultiplier = currentTier ? currentTier.multiplier : 1;
 
     // New Logic: (Amount / UnitAmount) * EarnPoints
-    // Fallback to legacy earnRatio if new fields are default/zero (though schema defaults to 1.0)
     const unitAmount = settings.earnUnitAmount || 1.0;
     const earnPerAmount = settings.earnPerAmount || 1.0;
 
@@ -92,13 +91,17 @@ export function calculatePoints(
 
 /**
  * Calculates points to be deducted for a refund.
- * 
- * @param amount - The refunded amount
- * @param tier - The current loyalty tier
- * @returns The integer number of points to deduct.
  */
-export function calculateRefundPoints(amount: number, tier: LoyaltyProfile['tier'] = 'Standard'): number {
-    const multiplier = TIER_MULTIPLIERS[tier] || 1;
+export function calculateRefundPoints(
+    amount: number,
+    tier: LoyaltyProfile['tier'] = 'Standard',
+    settings?: any
+): number {
+    const tiers = settings?.tiers || DEFAULT_TIERS;
+    const currentTier = tiers.find((t: any) => t.name === tier);
+    const multiplier = currentTier ? currentTier.multiplier : 1;
+
     const points = Math.floor(amount * multiplier);
     return Math.max(0, points);
 }
+

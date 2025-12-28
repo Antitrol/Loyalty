@@ -6,6 +6,7 @@ import Loading from '@/components/Loading';
 import EarningRules from '@/components/dashboard/EarningRules';
 import RedemptionRules from '@/components/dashboard/RedemptionRules';
 import WidgetDesign from '@/components/dashboard/WidgetDesign';
+import TierSettings from '@/components/dashboard/TierSettings';
 
 // Icons
 const Icons = {
@@ -132,6 +133,9 @@ export default function Dashboard() {
                   </div>
                   <EarningRules settings={settings} setSettings={setSettings} />
                 </div>
+
+                {/* Tier Settings */}
+                <TierSettings settings={settings} setSettings={setSettings} />
 
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">

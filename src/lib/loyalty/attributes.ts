@@ -68,7 +68,8 @@ export async function updateLoyaltyBalance(
     client: ikasAdminGraphQLAPIClient<any>,
     customerId: string,
     delta: number,
-    newTier?: string // Manual override
+    newTier?: string, // Manual override
+    settings?: any
 ): Promise<LoyaltyProfile | null> {
     const currentProfile = await getLoyaltyProfile(client, customerId);
     if (!currentProfile) throw new Error('Customer not found');
@@ -82,7 +83,7 @@ export async function updateLoyaltyBalance(
     }
 
     // Determine Tier based on Lifetime Points (or manual override)
-    const calculatedTier = determineTier(newLifetime);
+    const calculatedTier = determineTier(newLifetime, settings);
     const finalTier = newTier || calculatedTier;
     // Logic: We prioritize manual override if provided (e.g. admin setting), otherwise auto-calculate.
     // However, if manual tier is lower than calculated tier from lifetime, should we downgrade?
