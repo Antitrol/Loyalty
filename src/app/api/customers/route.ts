@@ -1,12 +1,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/session';
+import { getUserFromRequest } from '@/lib/auth-helpers';
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await getSession();
-        // Auth check...
+        // JWT authentication check
+        const user = getUserFromRequest(req);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         const customers = await prisma.loyaltyBalance.findMany({
             orderBy: { points: 'desc' }

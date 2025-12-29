@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ['*.trycloudflare.com'],
+  // Turbopack configuration (required for Next.js 16+)
+  turbopack: {},
   // Webpack configuration
   webpack: (config) => {
     // Disable fs module on client side (required for Vercel)
@@ -9,7 +11,7 @@ const nextConfig = {
       fs: false,
     };
 
-  
+
     return config;
   },
 };

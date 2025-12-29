@@ -1,12 +1,14 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Loading from '@/components/Loading';
 import EarningRules from '@/components/dashboard/EarningRules';
 import RedemptionRules from '@/components/dashboard/RedemptionRules';
 import WidgetDesign from '@/components/dashboard/WidgetDesign';
 import TierSettings from '@/components/dashboard/TierSettings';
+import { TokenHelpers } from '@/helpers/token-helpers';
+import { AppBridgeHelper } from '@ikas/app-helpers';
 
 // Icons
 const Icons = {
@@ -19,6 +21,10 @@ const Icons = {
 };
 
 export default function Dashboard() {
+  // ikas App Bridge token
+  const [token, setToken] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+
   const [activeTab, setActiveTab] = useState('settings');
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<any>(null);
@@ -30,29 +36,64 @@ export default function Dashboard() {
   const [adjustPoints, setAdjustPoints] = useState<number>(0);
   const [adjustReason, setAdjustReason] = useState<string>('');
 
-  useEffect(() => { fetchData(); }, []);
-
-  const fetchData = async () => {
+  // Fetch data with JWT token
+  const fetchData = useCallback(async (currentToken: string) => {
     try {
       const [settingsRes, customersRes] = await Promise.all([
-        fetch('/api/settings'),
-        fetch('/api/customers')
+        fetch('/api/settings', {
+          headers: { 'Authorization': `JWT ${currentToken}` }
+        }),
+        fetch('/api/customers', {
+          headers: { 'Authorization': `JWT ${currentToken}` }
+        })
       ]);
-      setSettings(await settingsRes.json());
-      setCustomers(await customersRes.json());
+
+      if (settingsRes.ok) setSettings(await settingsRes.json());
+      if (customersRes.ok) setCustomers(await customersRes.json());
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching data:', e);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Initialize dashboard with ikas App Bridge
+  useEffect(() => {
+    const initializeDashboard = async () => {
+      try {
+        // Close ikas platform loader
+        AppBridgeHelper.closeLoader();
+
+        // Get JWT token from ikas App Bridge
+        const fetchedToken = await TokenHelpers.getTokenForIframeApp();
+
+        if (fetchedToken) {
+          setToken(fetchedToken);
+          await fetchData(fetchedToken);
+        } else {
+          setAuthError('Token alınamadı. Lütfen ikas Admin panelinden tekrar açın.');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        setAuthError('Bağlantı hatası oluştu.');
+        setLoading(false);
+      }
+    };
+
+    initializeDashboard();
+  }, [fetchData]);
 
   const saveSettings = async () => {
+    if (!token) return;
     setSaving(true);
     try {
       await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `JWT ${token}`
+        },
         body: JSON.stringify(settings)
       });
       alert('Ayarlar kaydedildi!');
@@ -64,22 +105,38 @@ export default function Dashboard() {
   };
 
   const handleAdjustPoints = async () => {
-    if (!selectedCustomer) return;
+    if (!selectedCustomer || !token) return;
     try {
       const res = await fetch(`/api/customers/${selectedCustomer.customerId}/adjust`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `JWT ${token}`
+        },
         body: JSON.stringify({ points: adjustPoints, reason: adjustReason })
       });
       if (res.ok) {
         alert('Puan güncellendi.');
         setSelectedCustomer(null);
-        fetchData(); // Refresh list
+        await fetchData(token); // Refresh list
       }
     } catch (e) {
       alert('Hata oluştu.');
     }
   };
+
+  // Show error if authentication failed
+  if (authError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+          <div className="text-red-500 text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Yetkilendirme Hatası</h2>
+          <p className="text-gray-600">{authError}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) return <Loading />;
 

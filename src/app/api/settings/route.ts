@@ -1,14 +1,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { AuthTokenManager } from '@/models/auth-token/manager';
-import { getSession } from '@/lib/session';
+import { getUserFromRequest } from '@/lib/auth-helpers';
 
 export async function GET(req: NextRequest) {
     try {
-        // Basic auth check (ensure user is logged in via session)
-        const session = await getSession();
-        // In a real app we might verify session against DB, but for now session existence is checking common auth flow.
+        // JWT authentication check
+        const user = getUserFromRequest(req);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         // Fetch settings, or upsert default if not exists
         let settings = await prisma.loyaltySettings.findUnique({
@@ -34,6 +35,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
+        // JWT authentication check
+        const user = getUserFromRequest(req);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await req.json();
         const { earnRatio, burnRatio } = body;
 

@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/session';
+import { getUserFromRequest } from '@/lib/auth-helpers';
 
 export async function POST(
     req: NextRequest,
@@ -9,8 +9,11 @@ export async function POST(
 ) {
     const params = await props.params;
     try {
-        const session = await getSession();
-        // Auth check...
+        // JWT authentication check
+        const user = getUserFromRequest(req);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         const customerId = params.id;
         const body = await req.json();
