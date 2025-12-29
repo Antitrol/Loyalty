@@ -55,7 +55,16 @@ export async function GET(request: NextRequest) {
 
     // Hardcode URI to rule out Env var issues
     const computedRedirectUri = 'https://loyalty-8isa.vercel.app/api/oauth/callback/ikas';
-    console.log('Using Redirect URI:', computedRedirectUri);
+
+    // Debug logging - will appear in Vercel logs
+    console.log('=== OAuth Token Exchange Debug ===');
+    console.log('code:', code);
+    console.log('client_id:', config.oauth.clientId);
+    console.log('client_secret exists:', !!config.oauth.clientSecret);
+    console.log('client_secret length:', config.oauth.clientSecret?.length);
+    console.log('redirect_uri:', computedRedirectUri);
+    console.log('storeName from session:', session.storeName);
+    console.log('=================================');
 
     // Exchange authorization code for access/refresh tokens
     const tokenResponse = await OAuthAPI.getTokenWithAuthorizationCode(
@@ -78,7 +87,12 @@ export async function GET(request: NextRequest) {
           statusCode: 500,
           message: 'Failed to retrieve token',
           details: tokenResponse,
-          usedRedirectUri: computedRedirectUri
+          usedRedirectUri: computedRedirectUri,
+          usedClientId: config.oauth.clientId,
+          debug: {
+            clientSecretExists: !!config.oauth.clientSecret,
+            clientSecretLength: config.oauth.clientSecret?.length,
+          }
         }
       }, { status: 500 });
     }
