@@ -41,10 +41,12 @@ export default function Dashboard() {
     try {
       const [settingsRes, customersRes] = await Promise.all([
         fetch('/api/settings', {
-          headers: { 'Authorization': `JWT ${currentToken}` }
+          headers: { 'Authorization': `JWT ${currentToken}` },
+          cache: 'no-store'
         }),
         fetch('/api/customers', {
-          headers: { 'Authorization': `JWT ${currentToken}` }
+          headers: { 'Authorization': `JWT ${currentToken}` },
+          cache: 'no-store'
         })
       ]);
 
@@ -88,7 +90,7 @@ export default function Dashboard() {
     if (!token) return;
     setSaving(true);
     try {
-      await fetch('/api/settings', {
+      const res = await fetch('/api/settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,9 +98,15 @@ export default function Dashboard() {
         },
         body: JSON.stringify(settings)
       });
-      alert('Ayarlar kaydedildi!');
-    } catch (e) {
-      alert('Hata!');
+
+      if (res.ok) {
+        alert('Ayarlar kaydedildi!');
+      } else {
+        const errData = await res.json();
+        alert('Hata Detayı: ' + JSON.stringify(errData));
+      }
+    } catch (e: any) {
+      alert('İstemci Hatası: ' + e.message);
     } finally {
       setSaving(false);
     }

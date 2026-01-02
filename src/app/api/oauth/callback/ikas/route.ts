@@ -53,10 +53,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 });
     }
 
-    // Hardcode URI to rule out Env var issues
-    const computedRedirectUri = 'https://loyalty-8isa.vercel.app/api/oauth/callback/ikas';
+    // Use redirectUri from config
+    const computedRedirectUri = config.oauth.redirectUri;
 
-    // Debug logging - will appear in Vercel logs
+    // Debug logging
     console.log('=== OAuth Token Exchange Debug ===');
     console.log('code:', code);
     console.log('client_id:', config.oauth.clientId);
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
         code: code as string,
         client_id: config.oauth.clientId!,
         client_secret: config.oauth.clientSecret!,
-        redirect_uri: computedRedirectUri,
+        redirect_uri: computedRedirectUri!,
       },
       {
         storeName: (session.storeName || 'api') as string,
@@ -96,6 +96,8 @@ export async function GET(request: NextRequest) {
         }
       }, { status: 500 });
     }
+
+    // ... (rest of code same until final redirect)
 
     // Prepare a temporary token object
     const tokenTemp: Partial<AuthToken> = {
@@ -181,8 +183,7 @@ export async function GET(request: NextRequest) {
     callbackUrl.set('authorizedAppId', authorizedAppId);
 
     // Redirect the user to the callback URL
-    // Hardcoded base URL to prevent Invalid URL error if Env var is missing
-    const baseUrl = 'https://loyalty-8isa.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_DEPLOY_URL || 'http://localhost:3000';
     return NextResponse.redirect(new URL(`/callback?${callbackUrl.toString()}`, baseUrl));
   } catch (error: any) {
     // Log and return error response

@@ -1,5 +1,5 @@
 
-import { LoyaltyProfile } from './types';
+import { LoyaltyProfile, TierConfig, LoyaltySettings, CategoryBonuses } from './types';
 
 
 
@@ -15,7 +15,7 @@ const DEFAULT_TIERS = [
 /**
  * Calculates current tier based on lifetime points and settings.
  */
-export function determineTier(lifetimePoints: number, settings?: any): LoyaltyProfile['tier'] {
+export function determineTier(lifetimePoints: number, settings?: Partial<LoyaltySettings>): LoyaltyProfile['tier'] {
     const tiers = settings?.tiers || DEFAULT_TIERS;
 
     // Sort tiers by threshold descending to find the highest matching one
@@ -41,7 +41,7 @@ export function calculateLineItemPoints(
     settings: {
         earnPerAmount: number;
         earnUnitAmount: number;
-        categoryBonuses?: any
+        categoryBonuses?: CategoryBonuses | null
     }
 ): number {
     const unitAmount = settings.earnUnitAmount || 1.0;
@@ -70,10 +70,10 @@ export function calculateLineItemPoints(
 export function calculatePoints(
     amount: number,
     tier: LoyaltyProfile['tier'] = 'Standard',
-    settings: { earnPerAmount: number; earnUnitAmount: number; earnRatio?: number; tiers?: any[] }
+    settings: { earnPerAmount: number; earnUnitAmount: number; earnRatio?: number; tiers?: TierConfig[] }
 ): number {
     const tiers = settings.tiers || DEFAULT_TIERS;
-    const currentTier = tiers.find((t: any) => t.name === tier);
+    const currentTier = tiers.find((t) => t.name === tier);
     const tierMultiplier = currentTier ? currentTier.multiplier : 1;
 
     // New Logic: (Amount / UnitAmount) * EarnPoints
@@ -95,10 +95,10 @@ export function calculatePoints(
 export function calculateRefundPoints(
     amount: number,
     tier: LoyaltyProfile['tier'] = 'Standard',
-    settings?: any
+    settings?: Partial<LoyaltySettings>
 ): number {
     const tiers = settings?.tiers || DEFAULT_TIERS;
-    const currentTier = tiers.find((t: any) => t.name === tier);
+    const currentTier = tiers.find((t) => t.name === tier);
     const multiplier = currentTier ? currentTier.multiplier : 1;
 
     const points = Math.floor(amount * multiplier);

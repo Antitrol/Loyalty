@@ -56,6 +56,10 @@ export async function GET(request: NextRequest) {
       `&scope=${encodeURIComponent(config.oauth.scope)}` +
       `&state=${encodeURIComponent(state)}`;
 
+    // Debug: Log the authorize URL and client_id
+    console.log('DEBUG client_id:', config.oauth.clientId);
+    console.log('DEBUG authorizeUrl:', authorizeUrl);
+
     // Redirect the user to the Ikas OAuth authorization page
     return NextResponse.redirect(authorizeUrl);
   } catch (error) {

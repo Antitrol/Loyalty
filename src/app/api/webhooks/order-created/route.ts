@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyIkasWebhook } from '@/lib/webhooks/verify';
 import { calculatePoints, calculateLineItemPoints } from '@/lib/loyalty/earn';
 import { getLoyaltyProfile, updateLoyaltyBalance } from '@/lib/loyalty/attributes';
+import { LoyaltySettings } from '@/lib/loyalty/types';
 import { NotificationService } from '@/lib/notifications/service';
 import { AuthTokenManager } from '@/models/auth-token/manager';
 import { getIkas } from '@/helpers/api-helpers';
@@ -43,14 +44,14 @@ export async function POST(req: NextRequest) {
         ]);
 
         // Use default settings if none exist
-        const safeSettings = settings || {
+        const safeSettings = (settings || {
             earnPerAmount: 1,
             earnUnitAmount: 1,
             excludeShipping: false,
             excludeDiscounted: false,
             welcomeBonus: 0,
             categoryBonuses: null
-        };
+        }) as LoyaltySettings;
 
         // If no profile exists, treat as New
         let currentProfile = profile;
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
 
         // 3. Calculate Points with New Formula
         let pointsEarned = 0;
-        const hasCategoryRules = (safeSettings as any).categoryBonuses && Object.keys((safeSettings as any).categoryBonuses).length > 0;
+        const hasCategoryRules = safeSettings.categoryBonuses && Object.keys(safeSettings.categoryBonuses).length > 0;
         const lineItems = orderData.orderLineItems || [];
 
         if (hasCategoryRules && lineItems.length > 0) {
@@ -106,20 +107,23 @@ export async function POST(req: NextRequest) {
 
             // Apply Tier Multiplier to total base points
             // Multiplier from dynamic settings (or default if missing)
-            const tiers = (safeSettings as any).tiers || [
+            const tiers = safeSettings.tiers || [
                 { name: 'Standard', multiplier: 1 },
                 { name: 'Bronze', multiplier: 1.1 },
                 { name: 'Silver', multiplier: 1.25 },
                 { name: 'Gold', multiplier: 1.5 },
                 { name: 'Platinum', multiplier: 2.0 },
             ];
-            const activeTier = tiers.find((t: any) => t.name === currentProfile.tier);
+            const activeTier = tiers.find((t) => t.name === currentProfile.tier);
             const tierMultiplier = activeTier ? activeTier.multiplier : 1.0;
 
             pointsEarned = Math.floor(totalItemPoints * tierMultiplier);
         } else {
             // Standard Calculation
-            pointsEarned = calculatePoints(calculationAmount, currentProfile.tier, safeSettings);
+            pointsEarned = calculatePoints(calculationAmount, currentProfile.tier, {
+                ...safeSettings,
+                tiers: safeSettings.tiers || undefined
+            });
         }
 
         let logMetadata: any = {

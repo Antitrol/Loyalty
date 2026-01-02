@@ -1,65 +1,85 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getUserFromRequest } from '@/lib/auth-helpers';
+import { JwtHelpers } from '@/helpers/jwt-helpers';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
     try {
-        // JWT authentication check
-        const user = getUserFromRequest(req);
-        if (!user) {
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader?.startsWith('JWT ')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        const token = authHeader.split(' ')[1];
+        const payload = JwtHelpers.verifyToken(token);
+        if (!payload) {
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
 
-        // Fetch settings, or upsert default if not exists
-        let settings = await prisma.loyaltySettings.findUnique({
+        const settings = await prisma.loyaltySettings.findUnique({
             where: { id: 'default' }
         });
 
+        console.log("📥 GET Settings from DB:", JSON.stringify(settings));
+
+        // Return default empty object with defaults if null, or just let frontend handle it
+        // Prisma "create" defaults only apply on insert, so we might return null if not created yet.
+        // Let's return defaults if null.
         if (!settings) {
-            settings = await prisma.loyaltySettings.create({
-                data: {
-                    id: 'default',
-                    earnRatio: 1.0, // 1 Currency = 1 Point
-                    burnRatio: 0.01 // 1 Point = 0.01 Currency
-                }
+            return NextResponse.json({
+                earnPerAmount: 1.0,
+                earnUnitAmount: 1.0,
+                welcomeBonus: 0,
+                categoryBonuses: {}
             });
         }
 
         return NextResponse.json(settings);
     } catch (error: any) {
-        console.error('Error fetching settings:', error);
-        return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
+        console.error('Settings GET error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        // JWT authentication check
-        const user = getUserFromRequest(req);
-        if (!user) {
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader?.startsWith('JWT ')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        const token = authHeader.split(' ')[1];
+        const payload = JwtHelpers.verifyToken(token);
+        if (!payload) {
+            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
         const body = await req.json();
-        const { earnRatio, burnRatio } = body;
+        console.log("🔥 POST Body:", body);
 
-        const updated = await prisma.loyaltySettings.upsert({
+        // Clean body
+        const { id, updatedAt, ...data } = body;
+
+        // Type casting/validation basic
+        if (typeof data.welcomeBonus === 'string') data.welcomeBonus = parseInt(data.welcomeBonus);
+        if (typeof data.earnPerAmount === 'string') data.earnPerAmount = parseFloat(data.earnPerAmount);
+        if (typeof data.earnUnitAmount === 'string') data.earnUnitAmount = parseFloat(data.earnUnitAmount);
+
+        console.log("🛠️ Data to upsert:", data);
+
+        const settings = await prisma.loyaltySettings.upsert({
             where: { id: 'default' },
-            update: {
-                earnRatio: Number(earnRatio),
-                burnRatio: Number(burnRatio)
-            },
+            update: data,
             create: {
                 id: 'default',
-                earnRatio: Number(earnRatio),
-                burnRatio: Number(burnRatio)
+                ...data
             }
         });
 
-        return NextResponse.json(updated);
+        console.log("✅ Upsert Success:", settings);
+        return NextResponse.json(settings);
     } catch (error: any) {
-        console.error('Error saving settings:', error);
-        return NextResponse.json({ error: 'Failed to save settings' }, { status: 500 });
+        console.error('❌ Settings POST error:', error);
+        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
     }
 }

@@ -1,8 +1,29 @@
 
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
 import { GET_CUSTOMER_LOYALTY_DATA, UPDATE_CUSTOMER_TAGS } from '../graphql/loyalty';
-import { LoyaltyProfile } from './types';
+import { LoyaltyProfile, LoyaltySettings } from './types';
 import { determineTier } from './earn';
+
+// GraphQL Response Types
+interface CustomerTag {
+    name: string;
+}
+
+interface CustomerData {
+    id: string;
+    email: string;
+    tags: (CustomerTag | string)[];
+}
+
+interface CustomerQueryResponse {
+    listCustomer: {
+        data: CustomerData[];
+    };
+}
+
+interface UpdateCustomerResponse {
+    updateCustomer: CustomerData;
+}
 
 // Tag Prefixes
 const TAG_PREFIX_POINTS = "Loyalty:Points:";
@@ -35,15 +56,15 @@ function parseTags(customerId: string, tags: string[], email?: string): LoyaltyP
     };
 }
 
-export async function getLoyaltyProfile(
-    client: ikasAdminGraphQLAPIClient<any>,
+export async function getLoyaltyProfile<T = unknown>(
+    client: ikasAdminGraphQLAPIClient<T>,
     customerId: string
 ): Promise<LoyaltyProfile | null> {
     const query = GET_CUSTOMER_LOYALTY_DATA;
     try {
 
         console.log(`[getLoyaltyProfile] Querying ID: ${customerId}`);
-        const response = await client.query<{ listCustomer: any }>({ query, variables: { id: customerId } });
+        const response = await client.query<CustomerQueryResponse>({ query, variables: { id: customerId } });
         // console.log(\`[getLoyaltyProfile] Response: \${JSON.stringify(response)}\`);
 
 
@@ -54,22 +75,23 @@ export async function getLoyaltyProfile(
         const customer = response.data.listCustomer.data[0];
 
         const rawTags = customer.tags || [];
-        const tags = rawTags.map((t: any) => typeof t === 'string' ? t : t.name || '');
+        const tags = rawTags.map((t: CustomerTag | string) => typeof t === 'string' ? t : t.name || '');
 
         return parseTags(customer.id, tags, customer.email);
-    } catch (e: any) {
-        console.error(`[getLoyaltyProfile] Error: ${e.message}`);
-        console.error("getLoyaltyProfile Error:", e.message);
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        console.error(`[getLoyaltyProfile] Error: ${message}`);
+        console.error("getLoyaltyProfile Error:", message);
         throw e;
     }
 }
 
-export async function updateLoyaltyBalance(
-    client: ikasAdminGraphQLAPIClient<any>,
+export async function updateLoyaltyBalance<T = unknown>(
+    client: ikasAdminGraphQLAPIClient<T>,
     customerId: string,
     delta: number,
     newTier?: string, // Manual override
-    settings?: any
+    settings?: Partial<LoyaltySettings>
 ): Promise<LoyaltyProfile | null> {
     const currentProfile = await getLoyaltyProfile(client, customerId);
     if (!currentProfile) throw new Error('Customer not found');
@@ -91,11 +113,11 @@ export async function updateLoyaltyBalance(
 
     // Fetch tags again to be safe
     const query = GET_CUSTOMER_LOYALTY_DATA;
-    const response = await client.query<{ listCustomer: any }>({ query, variables: { id: customerId } });
+    const response = await client.query<CustomerQueryResponse>({ query, variables: { id: customerId } });
     const customer = response.data?.listCustomer?.data?.[0];
     if (!customer) throw new Error("Customer not found during update");
 
-    const validTags: string[] = (customer.tags || []).map((t: any) => typeof t === 'string' ? t : t.name || '');
+    const validTags: string[] = (customer.tags || []).map((t: CustomerTag | string) => typeof t === 'string' ? t : t.name || '');
 
     const otherTags = validTags.filter(t =>
         !t.startsWith(TAG_PREFIX_POINTS) &&
@@ -119,19 +141,20 @@ export async function updateLoyaltyBalance(
     console.log(`[updateLoyaltyBalance] Updating tags: ${JSON.stringify(newTags)}`);
 
     try {
-        const updateRes = await client.mutate<{ updateCustomer: any }>({ mutation, variables: { input } });
+        const updateRes = await client.mutate<UpdateCustomerResponse>({ mutation, variables: { input } });
         // console.log(\`[updateLoyaltyBalance] Response: \${JSON.stringify(updateRes)}\`);
         const updatedCustomer = updateRes.data?.updateCustomer;
 
         if (!updatedCustomer) throw new Error("Failed to update tags");
 
         // Convert object tags to strings for parsing
-        const updatedTagsString = (updatedCustomer.tags || []).map((t: any) => typeof t === 'string' ? t : t.name || '');
+        const updatedTagsString = (updatedCustomer.tags || []).map((t: CustomerTag | string) => typeof t === 'string' ? t : t.name || '');
 
         // Use the email we already have from valid customer or currentProfile
         return parseTags(updatedCustomer.id, updatedTagsString, currentProfile.email);
-    } catch (e: any) {
-        console.error(`[updateLoyaltyBalance] Error: ${e.message}`);
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        console.error(`[updateLoyaltyBalance] Error: ${message}`);
         throw e;
     }
 }

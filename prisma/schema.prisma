@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider = "sqlite"
+  url      = "file:C:/tmp/ikas_loyalty.db"
 }
 
 model AuthToken {
@@ -59,6 +58,8 @@ model LoyaltySettings {
   welcomeBonus     Int     @default(0)
   excludeShipping  Boolean @default(false)
   excludeDiscounted Boolean @default(false)
+  categoryBonuses   Json?   // Stores { "Category Name": Multiplier }
+  tiers             Json?   // Stores List of Rules [{ name, threshold, multiplier }]
 
   // Redemption Rules
   burnRatio          Float @default(0.01) // 1 Point = X TL

@@ -9,6 +9,42 @@ export interface LoyaltyProfile {
     pointsExpirationDate?: string;
 }
 
+export type TierName = LoyaltyProfile['tier'];
+
+export interface TierConfig {
+    name: TierName;
+    threshold: number;
+    multiplier: number;
+}
+
+export interface LoyaltySettings {
+    id: string;
+
+    // Earning Rules
+    earnPerAmount: number;
+    earnUnitAmount: number;
+    earnRatio: number;
+    welcomeBonus: number;
+    excludeShipping: boolean;
+    excludeDiscounted: boolean;
+    categoryBonuses: Record<string, number> | null;
+    tiers: TierConfig[] | null;
+
+    // Redemption Rules
+    burnRatio: number;
+    minSpendLimit: number;
+    maxPointUsage: number;
+
+    // Widget/Branding
+    widgetPrimaryColor: string;
+    widgetLabel: string;
+
+    // Timestamps
+    updatedAt?: Date;
+}
+
+export type CategoryBonuses = Record<string, number>;
+
 export const ATTRIBUTE_KEYS = {
     BALANCE: 'loyalty_points_balance',
     TIER: 'loyalty_tier',

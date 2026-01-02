@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İkas Loyalty Widget - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #4F46E5;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        p {
+            color: #6B7280;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #F9FAFB;
+            border-left: 4px solid #4F46E5;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #1F2937;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .info-box li {
+            color: #4B5563;
+            margin-bottom: 8px;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .info-box li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10B981;
+            font-weight: bold;
+        }
+
+        .test-controls {
+            background: #EEF2FF;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .test-controls h3 {
+            color: #1F2937;
+            margin-bottom: 15px;
+        }
+
+        .test-button {
+            background: #4F46E5;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .test-button:hover {
+            background: #4338CA;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .test-button.secondary {
+            background: #6B7280;
+        }
+
+        .test-button.secondary:hover {
+            background: #4B5563;
+        }
+
+        code {
+            background: #1F2937;
+            color: #10B981;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>🎁 Loyalty Widget Demo</h1>
+        <p>Bu sayfa, İkas Loyalty Widget'ının nasıl çalıştığını test etmeniz için hazırlanmıştır.</p>
+
+        <div class="info-box">
+            <h3>🎯 Widget Özellikleri</h3>
+            <ul>
+                <li>Floating badge tasarım (köşede minimal)</li>
+                <li>Gerçek zamanlı puan gösterimi</li>
+                <li>Tier seviyesi ve ilerleme çubuğu</li>
+                <li>Puan kullanma butonu</li>
+                <li>Mobil uyumlu responsive tasarım</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>📍 Widget Konumu</h3>
+            <p style="margin-bottom: 0;">Widget sağ alt köşede görünmelidir. Tıklayarak genişletebilir, detayları görüntüleyebilirsiniz.</p>
+        </div>
+
+        <div class="test-controls">
+            <h3>🧪 Test Kontrolleri</h3>
+            
+            <button class="test-button" onclick="simulateCustomer('cm4pkb8fj000i1vq27ktfh24p')">
+                Test Müşterisi (ID: ...h24p)
+            </button>
+
+            <button class="test-button" onclick="simulateCustomer('test-customer-2')">
+                Farklı Müşteri
+            </button>
+
+            <button class="test-button secondary" onclick="clearCustomer()">
+                Çıkış Yap (Logout)
+            </button>
+
+            <button class="test-button secondary" onclick="reloadWidget()">
+                Widget'ı Yenile
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>Widget position: <code>bottom-right</code></p>
+            <p>Developer console'u açarak detaylı loglara bakabilirsiniz.</p>
+        </div>
+    </div>
+
+    <!-- Widget Configuration -->
+    <script>
+        window.IKAS_LOYALTY_CONFIG = {
+            apiUrl: window.location.origin,
+            position: 'bottom-right',
+            autoExpand: false
+        };
+    </script>
+
+    <!-- Widget Embed Script -->
+    <script src="/widget/embed.js"></script>
+
+    <!-- Test Helper Functions -->
+    <script>
+        function simulateCustomer(customerId) {
+            localStorage.setItem('ikas_customer', JSON.stringify({
+                id: customerId
+            }));
+            console.log('✅ Customer set:', customerId);
+            alert('Müşteri ayarlandı! Widget yenileniyor...');
+            reloadWidget();
+        }
+
+        function clearCustomer() {
+            localStorage.removeItem('ikas_customer');
+            console.log('🚪 Customer cleared');
+            alert('Çıkış yapıldı! Widget yenileniyor...');
+            reloadWidget();
+        }
+
+        function reloadWidget() {
+            // Remove existing widget
+            const widget = document.getElementById('ikas-loyalty-widget');
+            if (widget) {
+                widget.remove();
+            }
+
+            // Remove scripts and reload
+            const scripts = document.querySelectorAll('#ikas-loyalty-widget-js, #ikas-loyalty-widget-css');
+            scripts.forEach(s => s.remove());
+
+            // Reload page to reinitialize
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        }
+
+        // Log config on load
+        console.log('🎨 Widget Config:', window.IKAS_LOYALTY_CONFIG);
+        console.log('👤 Current Customer:', localStorage.getItem('ikas_customer'));
+    </script>
+</body>
+</html>

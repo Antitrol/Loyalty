@@ -19,24 +19,24 @@ async function main() {
   const query = gql`
       query IntrospectQuery {
         __schema {
-          mutationType {
+          queryType {
             fields {
-              name
-            }
-          }
+          name
         }
       }
-    `;
+    }
+  }
+  `;
 
   try {
     const res = await client.query<{ __schema: any }>({ query });
-    const fields = res.data?.__schema?.mutationType?.fields;
+    const fields = res.data?.__schema?.queryType?.fields;
 
-    console.log("✅ Mutation Fields found: " + fields?.length);
+    console.log("✅ Query Fields found: " + fields?.length);
     const names = fields?.map((f: any) => f.name).sort();
     const fs = require('fs');
-    fs.writeFileSync('mutation_fields.json', JSON.stringify(names, null, 2));
-    console.log("Written to mutation_fields.json");
+    fs.writeFileSync('query_fields.json', JSON.stringify(names, null, 2));
+    console.log("Written to query_fields.json");
 
   } catch (e: any) {
     console.error("❌ Error:", e.message);

@@ -1,5 +1,5 @@
 import { AppBridgeHelper } from '@ikas/app-helpers';
-import { useRouter } from 'next/navigation';
+import type { useRouter } from 'next/navigation';
 import crypto from 'crypto';
 
 /** Key used for storing tokens in session storage */
@@ -41,37 +41,37 @@ export class TokenHelpers {
       try {
         // Get the authorized app ID to create a unique storage key
         const authorizedAppId = (await AppBridgeHelper.getAuthorizedAppId()) || null;
-        
+
         // Attempt to retrieve cached token from session storage
         let token = sessionStorage.getItem(`${TOKEN_KEY}-${authorizedAppId}`);
-        
+
         if (token) {
           // Decode JWT payload to check expiration (JWT structure: header.payload.signature)
           const tokenData = JSON.parse(atob(token.split('.')[1]));
-          
+
           // Return cached token if it hasn't expired yet
           if (new Date().getTime() < tokenData.exp * 1000) {
             return token;
           }
-          
+
           // Token has expired, remove from cache
           sessionStorage.removeItem(`${TOKEN_KEY}-${authorizedAppId}`);
         }
-        
+
         // No valid cached token found, request new token from AppBridge
         token = (await AppBridgeHelper.getNewToken()) || null;
-        
+
         if (token) {
           // Cache the new token for future use
           sessionStorage.setItem(`${TOKEN_KEY}-${authorizedAppId}`, token);
           return token;
         }
-        
+
       } catch (error) {
         console.error('Error retrieving token from AppBridge:', error);
       }
     }
-    
+
     // Return null if not in iFrame context or token retrieval failed
     return null;
   };
@@ -96,33 +96,33 @@ export class TokenHelpers {
    * - Falls back to authorization page if required parameters are missing
    */
   static setToken = async (
-    router: ReturnType<typeof useRouter>, 
+    router: ReturnType<typeof useRouter>,
     params: URLSearchParams
   ): Promise<void> => {
     // Check if all required OAuth callback parameters are present
-    const hasRequiredParams = params.has('token') && 
-                             params.has('redirectUrl') && 
-                             params.has('authorizedAppId');
-    
+    const hasRequiredParams = params.has('token') &&
+      params.has('redirectUrl') &&
+      params.has('authorizedAppId');
+
     if (hasRequiredParams) {
       // Extract OAuth callback parameters
       const token = params.get('token')!;
       const authorizedAppId = params.get('authorizedAppId')!;
       const redirectUrl = params.get('redirectUrl')!;
-      
+
       // Store token with app-specific key for future retrieval
       sessionStorage.setItem(`${TOKEN_KEY}-${authorizedAppId}`, token);
-      
+
       // Store authorized app ID separately for reference
       sessionStorage.setItem('authorizedAppId', authorizedAppId);
-      
+
       // Redirect to the specified URL (typically back to the app)
       window.location.replace(redirectUrl);
-      
+
       // Throw to indicate successful redirect (prevents further execution)
       throw 'redirectUrl-called';
     }
-    
+
     // Missing required parameters - redirect to authorization page
     await router.push('/authorize-store');
   };
