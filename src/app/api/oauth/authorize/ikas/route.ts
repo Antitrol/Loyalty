@@ -34,6 +34,24 @@ export async function GET(request: NextRequest) {
 
     const { storeName } = validation.data;
 
+    // Check if required environment variables are present
+    if (!config.oauth.clientId) {
+      return NextResponse.json({
+        error: 'NEXT_PUBLIC_CLIENT_ID environment variable is not set',
+        debug: {
+          clientId: config.oauth.clientId,
+          clientSecret: !!config.oauth.clientSecret,
+          deployUrl: process.env.NEXT_PUBLIC_DEPLOY_URL,
+          allEnvVars: {
+            NEXT_PUBLIC_CLIENT_ID: !!process.env.NEXT_PUBLIC_CLIENT_ID,
+            CLIENT_SECRET: !!process.env.CLIENT_SECRET,
+            NEXT_PUBLIC_DEPLOY_URL: !!process.env.NEXT_PUBLIC_DEPLOY_URL,
+            NEXT_PUBLIC_GRAPH_API_URL: !!process.env.NEXT_PUBLIC_GRAPH_API_URL,
+          }
+        }
+      }, { status: 500 });
+    }
+
     // Generate a random state string for CSRF protection
     const state = Math.random().toFixed(16);
 
@@ -48,16 +66,20 @@ export async function GET(request: NextRequest) {
     // Generate the base OAuth URL for the given store
     const oauthBaseUrl = OAuthAPI.getOAuthUrl({ storeName });
 
+    // Get redirect URI
+    const redirectUri = getRedirectUri(request.headers.get('host')!);
+
     // Construct the full Ikas OAuth authorize URL with required query parameters
     const authorizeUrl =
       `${oauthBaseUrl}/authorize` +
       `?client_id=${encodeURIComponent(config.oauth.clientId!)}` +
-      `&redirect_uri=${encodeURIComponent(getRedirectUri(request.headers.get('host')!))}` +
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&scope=${encodeURIComponent(config.oauth.scope)}` +
       `&state=${encodeURIComponent(state)}`;
 
     // Debug: Log the authorize URL and client_id
     console.log('DEBUG client_id:', config.oauth.clientId);
+    console.log('DEBUG redirect_uri:', redirectUri);
     console.log('DEBUG authorizeUrl:', authorizeUrl);
 
     // Redirect the user to the Ikas OAuth authorization page
@@ -65,6 +87,15 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Log and return a 500 error if something goes wrong
     console.error('Authorize error:', error);
-    return NextResponse.json({ error: 'Authorization failed' }, { status: 500 });
+    return NextResponse.json({
+      error: 'Authorization failed',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      debug: {
+        clientIdConfigured: !!config.oauth.clientId,
+        clientSecretConfigured: !!config.oauth.clientSecret,
+        deployUrlConfigured: !!process.env.NEXT_PUBLIC_DEPLOY_URL,
+      }
+    }, { status: 500 });
   }
 }
