@@ -49,8 +49,30 @@ export async function GET(request: NextRequest) {
 
     // Retrieve session and optionally check state for CSRF protection
     const session = await getSession();
+
+    // Debug logging for state validation
+    console.log('=== State Validation Debug ===');
+    console.log('Incoming state from OAuth:', state);
+    console.log('Session state:', session.state);
+    console.log('Session keys:', Object.keys(session));
+    console.log('Cookie password exists:', !!config.cookiePassword);
+    console.log('==============================');
+
     if (state && session.state && session.state !== state) {
-      return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 });
+      return NextResponse.json({
+        error: 'Invalid state parameter',
+        debug: {
+          incomingState: state,
+          sessionState: session.state,
+          sessionKeys: Object.keys(session),
+          cookiePasswordConfigured: !!config.cookiePassword
+        }
+      }, { status: 400 });
+    }
+
+    // If state was sent but session has no state, it means session is not working
+    if (state && !session.state) {
+      console.warn('⚠️ WARNING: State parameter received but session.state is empty. This likely means session cookies are not working properly. Check SECRET_COOKIE_PASSWORD environment variable.');
     }
 
     // Use redirectUri from config

@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:C:/tmp/ikas_loyalty.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model AuthToken {
