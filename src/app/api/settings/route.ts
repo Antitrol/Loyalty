@@ -17,22 +17,34 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
-        const settings = await prisma.loyaltySettings.findUnique({
+        let settings = await prisma.loyaltySettings.findUnique({
             where: { id: 'default' }
         });
 
         console.log("📥 GET Settings from DB:", JSON.stringify(settings));
 
-        // Return default empty object with defaults if null, or just let frontend handle it
-        // Prisma "create" defaults only apply on insert, so we might return null if not created yet.
-        // Let's return defaults if null.
+        // If no settings exist, create default settings automatically
         if (!settings) {
-            return NextResponse.json({
-                earnPerAmount: 1.0,
-                earnUnitAmount: 1.0,
-                welcomeBonus: 0,
-                categoryBonuses: {}
+            console.log("⚠️ No settings found, creating default settings...");
+            settings = await prisma.loyaltySettings.create({
+                data: {
+                    id: 'default',
+                    earnPerAmount: 1.0,
+                    earnUnitAmount: 1.0,
+                    earnRatio: 1.0,
+                    welcomeBonus: 0,
+                    excludeShipping: false,
+                    excludeDiscounted: false,
+                    categoryBonuses: {},
+                    tiers: [],
+                    burnRatio: 0.01,
+                    minSpendLimit: 0,
+                    maxPointUsage: 0,
+                    widgetPrimaryColor: '#4F46E5',
+                    widgetLabel: 'Puan'
+                }
             });
+            console.log("✅ Default settings created:", settings);
         }
 
         return NextResponse.json(settings);
