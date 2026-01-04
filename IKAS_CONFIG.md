@@ -1,12 +1,12 @@
 # İkas Partner Portal Configuration
 
-## Current Tunnel URL (Active)
+## Current Production URL (Vercel) 🚀
 
-**Tunnel URL:** `https://lewis-boxing-usr-girls.trycloudflare.com`
+**Production URL:** `https://loyalty-tawny-two.vercel.app`
 
-**Status:** ✅ ACTIVE AND WORKING
+**Status:** ✅ DEPLOYED TO VERCEL
 
-**Verified:** 2026-01-02 14:26
+**Deployed:** 2026-01-04 15:20
 
 ---
 
@@ -16,12 +16,12 @@
 
 1. **App URL:**
    ```
-   https://lewis-boxing-usr-girls.trycloudflare.com
+   https://loyalty-tawny-two.vercel.app
    ```
 
 2. **OAuth Callback/Redirect URI:**
    ```
-   https://lewis-boxing-usr-girls.trycloudflare.com/api/oauth/callback/ikas
+   https://loyalty-tawny-two.vercel.app/api/oauth/callback/ikas
    ```
 
 ### Steps to Update:
@@ -48,6 +48,7 @@ Dashboard should now load successfully!
 
 ## Important Notes:
 
-⚠️ **This URL changes every time you restart the tunnel**
-⚠️ Keep `start-tunnel.bat` running while testing
-⚠️ For production, deploy to Vercel for stable URL
+✅ **Vercel URL is stable** - no need to update every session
+✅ **Auto-deploys** on git push to main branch
+⚠️ Remember to update İkas Partner Portal when URL changes
+
