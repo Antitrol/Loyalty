@@ -150,7 +150,8 @@ export default function Dashboard() {
 
   // Tabs Configuration
   const tabs = [
-    { id: 'settings', label: 'Ayarlar', icon: Icons.Palette },
+    { id: 'settings', label: 'Ayarlar', icon: Icons.Fire },
+    { id: 'design', label: 'Widget Tasarımı', icon: Icons.Palette },
     { id: 'stats', label: 'İstatistikler', icon: Icons.Chart },
     { id: 'crm', label: 'Müşteriler (CRM)', icon: Icons.Users },
   ];
@@ -189,7 +190,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-              {/* Left Column: Rules */}
+              {/* Left Column: Earning Rules */}
               <div className="space-y-8">
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
@@ -201,7 +202,10 @@ export default function Dashboard() {
 
                 {/* Tier Settings */}
                 <TierSettings settings={settings} setSettings={setSettings} />
+              </div>
 
+              {/* Right Column: Redemption Rules */}
+              <div className="space-y-8">
                 <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
                     <div className="p-2 bg-orange-50 rounded-lg text-orange-600"><Icons.Fire /></div>
@@ -211,20 +215,28 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Right Column: Design */}
-              <div className="space-y-8">
-                <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
-                    <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><Icons.Palette /></div>
-                    <h2 className="text-lg font-bold text-gray-800">Widget Tasarımı</h2>
-                  </div>
-                  <WidgetDesign settings={settings} setSettings={setSettings} />
-                </div>
-              </div>
-
             </div>
 
             {/* Sticky Save Button (Global for Settings) */}
+            <div className="sticky bottom-6 flex justify-end">
+              <button
+                onClick={saveSettings}
+                disabled={saving}
+                className="w-full md:w-auto flex items-center justify-center py-4 px-8 border border-transparent rounded-xl shadow-xl text-base font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 transition-all transform active:scale-95"
+              >
+                <Icons.Save />
+                <span className="ml-2">{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* DESIGN TAB (Widget Customization) */}
+        {activeTab === 'design' && (
+          <div className="space-y-6">
+            <WidgetDesign settings={settings} setSettings={setSettings} />
+
+            {/* Save Button */}
             <div className="sticky bottom-6 flex justify-end">
               <button
                 onClick={saveSettings}
