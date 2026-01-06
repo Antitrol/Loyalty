@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 
 interface Props {
     settings: any;
@@ -13,7 +12,7 @@ const PRESET_THEMES = {
         icon: '☀️',
         primary: '#4F46E5',
         secondary: '#818CF8',
-        description: 'Temiz ve aydınlık tasarım'
+        description: 'Temiz ve aydın lık tasarım'
     },
     dark: {
         name: 'Dark',
@@ -100,8 +99,8 @@ export default function WidgetDesign({ settings, setSettings }: Props) {
                             key={key}
                             onClick={() => applyTheme(key)}
                             className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${currentTheme === key
-                                    ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <div className="text-3xl mb-2">{theme.icon}</div>
@@ -163,13 +162,13 @@ export default function WidgetDesign({ settings, setSettings }: Props) {
                         <button
                             key={style.id}
                             onClick={() => setSettings({ ...settings, widgetStyle: style.id })}
-                            className={`p-4 rounded-lg border-2 transition-all ${currentStyle === style.id
-                                    ? 'border-indigo-500 bg-indigo-50'
-                                    : 'border-gray-200 hover:border-gray-300'
+                            className={`p-4 rounded-lg border-2 transition-all hover:scale-105 ${currentStyle === style.id
+                                ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
-                            <div className="text-2xl mb-1">{style.icon}</div>
-                            <div className="font-semibold text-sm">{style.name}</div>
+                            <div className="text-3xl mb-2">{style.icon}</div>
+                            <div className="font-semibold text-sm text-gray-900">{style.name}</div>
                             <div className="text-xs text-gray-500 mt-1">{style.description}</div>
                         </button>
                     ))}
@@ -178,50 +177,51 @@ export default function WidgetDesign({ settings, setSettings }: Props) {
 
             {/* Position & Behavior */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">Widget Konumu</label>
+                <div className="space-y-4">
+                    <h4 className="text-md font-semibold text-gray-800">Pozisyon</h4>
                     <div className="grid grid-cols-2 gap-2">
                         {POSITIONS.map((pos) => (
                             <button
                                 key={pos.id}
                                 onClick={() => setSettings({ ...settings, widgetPosition: pos.id })}
-                                className={`px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium ${currentPosition === pos.id
-                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                className={`p-3 rounded-lg border-2 transition-all ${currentPosition === pos.id
+                                    ? 'border-indigo-500 bg-indigo-50'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                             >
-                                <span className="mr-2">{pos.icon}</span>
-                                {pos.name}
+                                <div className="text-xl">{pos.icon}</div>
+                                <div className="text-xs font-medium mt-1">{pos.name}</div>
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">Davranış Ayarları</label>
-                    <div className="space-y-2">
-                        <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition">
+                <div className="space-y-4">
+                    <h4 className="text-md font-semibold text-gray-800">Davranış</h4>
+                    <div className="space-y-3">
+                        <label className="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
-                                checked={settings.widgetAnimations ?? true}
+                                checked={settings.widgetAnimations !== false}
                                 onChange={(e) => setSettings({ ...settings, widgetAnimations: e.target.checked })}
-                                className="w-5 h-5 text-indigo-600 rounded"
+                                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <div>
                                 <div className="font-medium text-sm">Animasyonlar</div>
-                                <div className="text-xs text-gray-500">Geçiş efektleri ve animasyonlar</div>
+                                <div className="text-xs text-gray-500">Hover ve geçiş efektleri</div>
                             </div>
                         </label>
-                        <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition">
+
+                        <label className="flex items-center gap-3 cursor-pointer">
                             <input
                                 type="checkbox"
-                                checked={settings.widgetAutoExpand ?? false}
+                                checked={settings.widgetAutoExpand || false}
                                 onChange={(e) => setSettings({ ...settings, widgetAutoExpand: e.target.checked })}
-                                className="w-5 h-5 text-indigo-600 rounded"
+                                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <div>
                                 <div className="font-medium text-sm">Otomatik Açılma</div>
-                                <div className="text-xs text-gray-500">Sayfa yüklendiğinde aç</div>
+                                <div className="text-xs text-gray-500">Sayfa yüklendiğinde genişlet</div>
                             </div>
                         </label>
                     </div>
@@ -229,8 +229,8 @@ export default function WidgetDesign({ settings, setSettings }: Props) {
             </div>
 
             {/* Advanced Styling */}
-            <div className="border-t border-gray-200 pt-6">
-                <h4 className="text-md font-semibold text-gray-800 mb-4">Gelişmiş Stil Ayarları</h4>
+            <div className="space-y-4">
+                <h4 className="text-md font-semibold text-gray-800">Gelişmiş Stil Ayarları</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Puan Etiketi</label>
@@ -239,38 +239,36 @@ export default function WidgetDesign({ settings, setSettings }: Props) {
                             value={settings.widgetLabel || 'Puan'}
                             onChange={(e) => setSettings({ ...settings, widgetLabel: e.target.value })}
                             placeholder="Örn: Coin, Yıldız"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        <p className="text-xs text-gray-500">"100 Puan" yerine "100 Coin"</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">Köşe Yuvarlaklığı: {settings.widgetBorderRadius || 16}px</label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="32"
+                            value={settings.widgetBorderRadius || 16}
+                            onChange={(e) => setSettings({ ...settings, widgetBorderRadius: parseInt(e.target.value) })}
+                            className="w-full"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Köşe Yuvarlaklığı</label>
-                        <div className="flex items-center gap-3">
-                            <input
-                                type="range"
-                                min="0"
-                                max="32"
-                                value={settings.widgetBorderRadius ?? 16}
-                                onChange={(e) => setSettings({ ...settings, widgetBorderRadius: parseInt(e.target.value) })}
-                                className="flex-1"
-                            />
-                            <span className="text-sm font-mono w-12 text-right">{settings.widgetBorderRadius ?? 16}px</span>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Gölge Yoğunluğu</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Gölge Yoğunluğu</label>
                         <div className="flex gap-2">
-                            {SHADOW_LEVELS.map((shadow) => (
+                            {SHADOW_LEVELS.map((level) => (
                                 <button
-                                    key={shadow.id}
-                                    onClick={() => setSettings({ ...settings, widgetShadowIntensity: shadow.id })}
-                                    className={`flex-1 px-3 py-2 rounded-md border-2 text-sm font-medium transition ${(settings.widgetShadowIntensity || 'medium') === shadow.id
-                                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                            : 'border-gray-200 hover:border-gray-300'
+                                    key={level.id}
+                                    onClick={() => setSettings({ ...settings, widgetShadowIntensity: level.id })}
+                                    className={`flex-1 px-3 py-2 rounded-md border-2 text-xs font-medium transition-all ${(settings.widgetShadowIntensity || 'medium') === level.id
+                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                        : 'border-gray-200 hover:border-gray-300'
                                         }`}
                                 >
-                                    {shadow.name}
+                                    {level.name}
                                 </button>
                             ))}
                         </div>
@@ -284,88 +282,67 @@ export default function WidgetDesign({ settings, setSettings }: Props) {
                     <h4 className="text-md font-semibold text-gray-800">Canlı Önizleme</h4>
                     <button
                         onClick={() => setPreviewExpanded(!previewExpanded)}
-                        className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                        className="px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
                     >
-                        {previewExpanded ? 'Daralt ▲' : 'Genişlet ▼'}
+                        {previewExpanded ? 'Daralt ▼' : 'Genişlet ▲'}
                     </button>
                 </div>
 
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 border border-gray-200 relative min-h-[200px] flex items-center justify-center">
-                    <div className="absolute top-3 left-3 text-xs font-semibold text-gray-400 uppercase tracking-widest">
-                        Önizleme
-                    </div>
+                <div className="bg-gray-100 rounded-xl p-8 min-h-[200px] flex items-center justify-center relative overflow-hidden">
+                    <div className="text-xs font-bold text-gray-400 absolute top-2 left-2 uppercase tracking-widest">Önizleme</div>
 
                     {/* Widget Mockup */}
-                    <div
-                        className="bg-white shadow-lg transition-all duration-300"
-                        style={{
-                            borderRadius: `${settings.widgetBorderRadius ?? 16}px`,
-                            boxShadow:
-                                (settings.widgetShadowIntensity || 'medium') === 'low' ? '0 4px 6px rgba(0,0,0,0.1)' :
-                                    (settings.widgetShadowIntensity || 'medium') === 'high' ? '0 20px 40px rgba(0,0,0,0.2)' :
-                                        '0 10px 25px rgba(0,0,0,0.15)'
-                        }}
-                    >
-                        {!previewExpanded ? (
-                            // Collapsed Badge
-                            <div className="px-5 py-4 flex items-center gap-3">
-                                <div className="text-2xl">⭐</div>
-                                <div>
-                                    <div className="text-xl font-bold" style={{ color: settings.widgetPrimaryColor }}>
-                                        500
-                                    </div>
-                                    <div className="text-xs text-gray-500 uppercase tracking-wide">
-                                        {settings.widgetLabel || 'Puan'}
-                                    </div>
-                                </div>
+                    {previewExpanded ? (
+                        <div
+                            className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 transform transition-all duration-300"
+                            style={{
+                                borderRadius: `${settings.widgetBorderRadius || 16}px`,
+                                borderColor: settings.widgetPrimaryColor
+                            }}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-gray-800">Sadakat Puanlarınız</h3>
+                                <button className="text-gray-400 hover:text-gray-600">×</button>
                             </div>
-                        ) : (
-                            // Expanded View
-                            <div className="w-80">
+                            <div
+                                className="rounded-lg p-6 text-white text-center mb-4"
+                                style={{ backgroundColor: settings.widgetPrimaryColor || '#4F46E5' }}
+                            >
+                                <div className="text-4xl font-bold">500</div>
+                                <div className="text-sm mt-1">{settings.widgetLabel || 'Puan'}</div>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Seviye:</span>
+                                    <span className="font-semibold">Gold</span>
+                                </div>
                                 <div
-                                    className="px-6 py-4 text-white flex items-center justify-between"
-                                    style={{
-                                        background: `linear-gradient(135deg, ${settings.widgetPrimaryColor}, ${settings.widgetSecondaryColor})`,
-                                        borderRadius: `${settings.widgetBorderRadius ?? 16}px ${settings.widgetBorderRadius ?? 16}px 0 0`
-                                    }}
+                                    className="h-2 bg-gray-200 rounded-full overflow-hidden"
+                                    style={{ borderRadius: `${(settings.widgetBorderRadius || 16) / 4}px` }}
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl">⭐</span>
-                                        <span className="font-semibold">Sadakat {settings.widgetLabel || 'Puan'}ın</span>
-                                    </div>
-                                    <button className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition">
-                                        ×
-                                    </button>
-                                </div>
-                                <div className="p-6 space-y-4">
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                        <span className="text-xs uppercase text-gray-500">Puan</span>
-                                        <span className="text-2xl font-bold" style={{ color: settings.widgetPrimaryColor }}>
-                                            500
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                        <span className="text-xs uppercase text-gray-500">Seviye</span>
-                                        <span className="text-xl font-bold" style={{ color: settings.widgetPrimaryColor }}>
-                                            Gold
-                                        </span>
-                                    </div>
-                                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-4 rounded-lg">
-                                        <button
-                                            className="w-full py-3 text-white font-semibold rounded-lg transition hover:opacity-90"
-                                            style={{ backgroundColor: settings.widgetPrimaryColor }}
-                                        >
-                                            {settings.widgetLabel || 'Puan'} Kullan
-                                        </button>
-                                    </div>
+                                    <div
+                                        className="h-full transition-all duration-300"
+                                        style={{ width: '60%', backgroundColor: settings.widgetSecondaryColor || '#818CF8' }}
+                                    ></div>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div
+                            className="bg-white rounded-lg shadow-lg p-4 transform transition-all duration-300 hover:scale-105"
+                            style={{
+                                borderRadius: `${settings.widgetBorderRadius || 16}px`,
+                                backgroundColor: settings.widgetPrimaryColor || '#4F46E5'
+                            }}
+                        >
+                            <div className="text-white text-center">
+                                <div className="text-2xl font-bold">500</div>
+                                <div className="text-xs">{settings.widgetLabel || 'Puan'}</div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
- 
- 
