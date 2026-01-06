@@ -1,6 +1,6 @@
 /**
- * İkas Loyalty Widget - Floating Badge
- * Lightweight vanilla JavaScript widget for customer-facing loyalty display
+ * İkas Loyalty Widget - Enhanced Version
+ * Theme System, Animations & Style Variants
  */
 
 (function () {
@@ -17,10 +17,11 @@
     let widgetData = null;
     let isExpanded = false;
     let customerId = null;
+    let widgetSettings = {};
 
     // Initialize widget
     function init() {
-        // Get customer ID from İkas (you'll need to implement this based on İkas's customer detection)
+        // Get customer ID from İkas
         customerId = getIkasCustomerId();
 
         if (!customerId) {
@@ -33,20 +34,20 @@
         fetchLoyaltyData();
 
         // Auto-expand if configured
-        if (CONFIG.autoExpand) {
+        if (CONFIG.autoExpand || widgetSettings.autoExpand) {
             setTimeout(() => toggleExpand(), 1000);
         }
     }
 
-    // Get İkas customer ID (This needs to be implemented based on İkas's system)
+    // Get İkas customer ID
     function getIkasCustomerId() {
-        // Method 1: From İkas App Bridge (if available)
+        // Method 1: From İkas App Bridge
         if (window.IKasAppBridge && window.IKasAppBridge.getCustomer) {
             const customer = window.IKasAppBridge.getCustomer();
             return customer?.id;
         }
 
-        // Method 2: From cookie/localStorage (merchant-specific)
+        // Method 2: From localStorage
         const customerData = localStorage.getItem('ikas_customer');
         if (customerData) {
             try {
@@ -74,6 +75,7 @@
             }
 
             widgetData = await response.json();
+            widgetSettings = widgetData.settings || {};
             render();
         } catch (error) {
             console.error('[Loyalty Widget] Failed to fetch data:', error);
@@ -94,7 +96,6 @@
             </div>
         `;
         widget.onclick = () => {
-            // Redirect to login or show login modal
             window.location.href = '/account/login';
         };
         document.body.appendChild(widget);
@@ -119,16 +120,31 @@
         if (!widgetData) return;
 
         const widget = createWidgetElement();
-        const primaryColor = widgetData.settings?.primaryColor || '#4F46E5';
-        const label = widgetData.settings?.label || 'Puan';
+
+        // Apply settings
+        applyWidgetSettings(widget);
 
         widget.innerHTML = `
             ${renderCollapsedView()}
             ${renderExpandedView()}
         `;
 
-        // Apply theme color
+        // Apply theme colors
+        const primaryColor = widgetSettings.primaryColor || '#4F46E5';
+        const secondaryColor = widgetSettings.secondaryColor || '#818CF8';
+        const borderRadius = widgetSettings.borderRadius || 16;
+
         widget.style.setProperty('--loyalty-primary-color', primaryColor);
+        widget.style.setProperty('--loyalty-secondary-color', secondaryColor);
+        widget.style.setProperty('--loyalty-border-radius', `${borderRadius}px`);
+
+        // Set shadow intensity
+        const shadowIntensity = widgetSettings.shadowIntensity || 'medium';
+        if (shadowIntensity === 'low') {
+            widget.style.setProperty('--loyalty-shadow-medium', 'var(--loyalty-shadow-low)');
+        } else if (shadowIntensity === 'high') {
+            widget.style.setProperty('--loyalty-shadow-medium', 'var(--loyalty-shadow-high)');
+        }
 
         // Add event listeners
         const badge = widget.querySelector('.loyalty-widget-badge');
@@ -156,11 +172,46 @@
         document.body.appendChild(widget);
     }
 
+    // Apply widget settings
+    function applyWidgetSettings(widget) {
+        const theme = widgetSettings.theme || 'light';
+        const style = widgetSettings.style || 'default';
+        const position = widgetSettings.position || CONFIG.position;
+        const animations = widgetSettings.animations !== false;
+
+        widget.setAttribute('data-theme', theme);
+        widget.setAttribute('data-style', style);
+        widget.setAttribute('data-animations', animations);
+        widget.className = `loyalty-widget loyalty-widget-${position}`;
+    }
+
     // Render collapsed badge view
     function renderCollapsedView() {
         const tierEmoji = getTierEmoji(widgetData.tier);
-        const label = widgetData.settings?.label || 'Puan';
+        const label = widgetSettings.label || 'Puan';
+        const style = widgetSettings.style || 'default';
 
+        // Different renders based on style
+        if (style === 'minimal') {
+            return `
+                <div class="loyalty-widget-badge ${isExpanded ? 'hidden' : ''}" data-state="collapsed">
+                    <div class="loyalty-icon">${tierEmoji}</div>
+                    <div class="loyalty-points">${formatNumber(widgetData.points)}</div>
+                </div>
+            `;
+        }
+
+        if (style === 'compact') {
+            return `
+                <div class="loyalty-widget-badge ${isExpanded ? 'hidden' : ''}" data-state="collapsed">
+                    <div class="loyalty-icon">${tierEmoji}</div>
+                    <div class="loyalty-points">${formatNumber(widgetData.points)}</div>
+                    <div class="loyalty-label">${label}</div>
+                </div>
+            `;
+        }
+
+        // Default and card styles
         return `
             <div class="loyalty-widget-badge ${isExpanded ? 'hidden' : ''}" data-state="collapsed">
                 <div class="loyalty-icon">${tierEmoji}</div>
@@ -175,7 +226,7 @@
     // Render expanded view
     function renderExpandedView() {
         const tierEmoji = getTierEmoji(widgetData.tier);
-        const label = widgetData.settings?.label || 'Puan';
+        const label = widgetSettings.label || 'Puan';
 
         return `
             <div class="loyalty-widget-expanded ${!isExpanded ? 'hidden' : ''}" data-state="expanded">
@@ -188,18 +239,18 @@
                 </div>
 
                 <div class="loyalty-body">
-                    <div class="loyalty-stat">
+                    <div class="loyalty-stat loyalty-animate-fadein">
                         <div class="stat-label">${label}</div>
                         <div class="stat-value">${formatNumber(widgetData.points)}</div>
                     </div>
 
-                    <div class="loyalty-stat">
+                    <div class="loyalty-stat loyalty-animate-fadein">
                         <div class="stat-label">Seviye</div>
                         <div class="stat-value">${widgetData.tier}</div>
                     </div>
 
                     ${widgetData.nextTier ? `
-                        <div class="loyalty-progress">
+                        <div class="loyalty-progress loyalty-animate-fadein">
                             <div class="progress-header">
                                 <span>İlerleme</span>
                                 <span>${widgetData.nextTier.pointsNeeded} ${label} kaldı</span>
@@ -212,7 +263,7 @@
                     ` : ''}
 
                     ${widgetData.canRedeem ? `
-                        <div class="loyalty-redeem">
+                        <div class="loyalty-redeem loyalty-animate-fadein">
                             <div class="redeem-info">
                                 <span>Kullanılabilir:</span>
                                 <span class="redeem-value">${widgetData.redeemValue.toFixed(2)}₺</span>
@@ -222,8 +273,8 @@
                             </button>
                         </div>
                     ` : `
-                        <div class="loyalty-info">
-                            Puan kullanmak için minimum ${widgetData.settings?.burnRatio || 100} puana ihtiyacınız var.
+                        <div class="loyalty-info loyalty-animate-fadein">
+                            Puan kullanmak için minimum ${widgetSettings.burnRatio || 100} puana ihtiyacınız var.
                         </div>
                     `}
                 </div>
@@ -241,7 +292,6 @@
 
         const widget = document.createElement('div');
         widget.id = 'ikas-loyalty-widget';
-        widget.className = `loyalty-widget loyalty-widget-${CONFIG.position}`;
         return widget;
     }
 
@@ -256,6 +306,12 @@
             if (isExpanded) {
                 badge.classList.add('hidden');
                 expanded.classList.remove('hidden');
+
+                // Trigger animations for staggered effect
+                const animatedElements = expanded.querySelectorAll('.loyalty-animate-fadein');
+                animatedElements.forEach((el, index) => {
+                    el.style.animationDelay = `${index * 0.1}s`;
+                });
             } else {
                 badge.classList.remove('hidden');
                 expanded.classList.add('hidden');
@@ -265,11 +321,10 @@
 
     // Open redemption modal
     function openRedeemModal() {
-        // For now, redirect to redemption page or show alert
-        // In full implementation, this would open a modal for point redemption
+        const label = widgetSettings.label || 'Puan';
         const redeemUrl = `${CONFIG.apiBaseUrl}/loyalty/redeem`;
 
-        if (confirm(`${widgetData.maxRedeemablePoints} puan kullanarak ${widgetData.redeemValue.toFixed(2)}₺ indirim almak ister misiniz?`)) {
+        if (confirm(`${widgetData.maxRedeemablePoints} ${label} kullanarak ${widgetData.redeemValue.toFixed(2)}₺ indirim almak ister misiniz?`)) {
             window.location.href = redeemUrl;
         }
     }
@@ -289,6 +344,22 @@
     // Utility: Format number with thousands separator
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    // Utility: Animate number changes
+    function animateNumber(element, start, end, duration = 500) {
+        const range = end - start;
+        const increment = range / (duration / 16);
+        let current = start;
+
+        const timer = setInterval(() => {
+            current += increment;
+            if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                current = end;
+                clearInterval(timer);
+            }
+            element.textContent = formatNumber(Math.floor(current));
+        }, 16);
     }
 
     // Initialize on DOM ready

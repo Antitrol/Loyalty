@@ -41,8 +41,16 @@ export async function GET(req: NextRequest) {
                     minSpendLimit: 0,
                     maxPointUsage: 0,
                     widgetPrimaryColor: '#4F46E5',
-                    widgetLabel: 'Puan'
-                }
+                    widgetSecondaryColor: '#818CF8',
+                    widgetLabel: 'Puan',
+                    widgetTheme: 'light',
+                    widgetPosition: 'bottom-right',
+                    widgetStyle: 'default',
+                    widgetAnimations: true,
+                    widgetAutoExpand: false,
+                    widgetBorderRadius: 16,
+                    widgetShadowIntensity: 'medium'
+                } as any
             });
             console.log("✅ Default settings created:", settings);
         }

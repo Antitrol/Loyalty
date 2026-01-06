@@ -99,8 +99,16 @@ export async function GET(req: NextRequest) {
             settings: {
                 burnRatio,
                 minSpendLimit,
-                label: settings?.widgetLabel || 'Puan',
-                primaryColor: settings?.widgetPrimaryColor || '#4F46E5'
+                label: (settings as any)?.widgetLabel || 'Puan',
+                primaryColor: (settings as any)?.widgetPrimaryColor || '#4F46E5',
+                secondaryColor: (settings as any)?.widgetSecondaryColor || '#818CF8',
+                theme: (settings as any)?.widgetTheme || 'light',
+                position: (settings as any)?.widgetPosition || 'bottom-right',
+                style: (settings as any)?.widgetStyle || 'default',
+                animations: (settings as any)?.widgetAnimations ?? true,
+                autoExpand: (settings as any)?.widgetAutoExpand ?? false,
+                borderRadius: (settings as any)?.widgetBorderRadius || 16,
+                shadowIntensity: (settings as any)?.widgetShadowIntensity || 'medium'
             }
         });
 

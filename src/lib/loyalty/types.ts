@@ -37,7 +37,17 @@ export interface LoyaltySettings {
 
     // Widget/Branding
     widgetPrimaryColor: string;
+    widgetSecondaryColor: string;
     widgetLabel: string;
+
+    // Widget Customization
+    widgetTheme: 'light' | 'dark' | 'gradient' | 'minimal' | 'colorful';
+    widgetPosition: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+    widgetStyle: 'default' | 'minimal' | 'card' | 'compact';
+    widgetAnimations: boolean;
+    widgetAutoExpand: boolean;
+    widgetBorderRadius: number;
+    widgetShadowIntensity: 'low' | 'medium' | 'high';
 
     // Timestamps
     updatedAt?: Date;

@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model AuthToken {
@@ -69,7 +68,17 @@ model LoyaltySettings {
   
   // Branding / Widget
   widgetPrimaryColor String @default("#4F46E5")
-  widgetLabel        String @default("Puan") 
+  widgetLabel          String  @default("Puan")
+  widgetSecondaryColor String  @default("#818CF8")
+  
+  // Widget Customization
+  widgetTheme          String  @default("light")         // light, dark, gradient, minimal, colorful
+  widgetPosition       String  @default("bottom-right")  // bottom-right, bottom-left, top-right, top-left
+  widgetStyle          String  @default("default")       // default, minimal, card, compact
+  widgetAnimations     Boolean @default(true)
+  widgetAutoExpand     Boolean @default(false)
+  widgetBorderRadius   Int     @default(16)              // px
+  widgetShadowIntensity String @default("medium")        // low, medium, high
   
   updatedAt DateTime @updatedAt
 }
