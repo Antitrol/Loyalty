@@ -292,6 +292,7 @@
 
         const widget = document.createElement('div');
         widget.id = 'ikas-loyalty-widget';
+        widget.className = 'loyalty-widget'; // Ensure base class is set immediately
         return widget;
     }
 
