@@ -17,41 +17,15 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: 'Customer ID required' }, { status: 400 });
         }
 
-        // Get auth token
-        const tokens = await AuthTokenManager.list();
-        if (tokens.length === 0) {
-            return NextResponse.json({ error: 'No auth token available' }, { status: 500 });
-        }
-        const client = getIkas(tokens[0]);
+        // Get customer loyalty balance from database (no auth needed for public widget)
+        const customer = await prisma.loyaltyBalance.findUnique({
+            where: { customerId }
+        });
 
-        // Get loyalty profile
-        const profile = await getLoyaltyProfile(client, customerId);
+        const points = customer?.points || 0;
+        const lifetimePoints = points; // For now, assume lifetime = current
 
-        if (!profile) {
-            // Return default state for new customers
-            return NextResponse.json({
-                points: 0,
-                tier: 'Standard',
-                lifetimePoints: 0,
-                nextTier: {
-                    name: 'Bronze',
-                    threshold: 5000,
-                    progress: 0,
-                    pointsNeeded: 5000
-                },
-                canRedeem: false,
-                maxRedeemablePoints: 0,
-                redeemValue: 0,
-                settings: {
-                    burnRatio: 100,
-                    minSpendLimit: 0,
-                    label: 'Puan',
-                    primaryColor: '#4F46E5'
-                }
-            });
-        }
-
-        // Get settings for tier calculations
+        // Get settings
         const settings = await prisma.loyaltySettings.findUnique({ where: { id: 'default' } });
 
         const tiers: TierConfig[] = settings?.tiers as any || [
@@ -62,14 +36,17 @@ export async function GET(req: NextRequest) {
             { name: 'Platinum', threshold: 50000, multiplier: 2.0 },
         ];
 
+        // Determine tier based on points
+        const tier = determineTier(lifetimePoints, tiers);
+
         // Find next tier
-        const currentTierIndex = tiers.findIndex(t => t.name === profile.tier);
+        const currentTierIndex = tiers.findIndex(t => t.name === tier);
         const nextTier = currentTierIndex < tiers.length - 1 ? tiers[currentTierIndex + 1] : null;
 
         let nextTierData = null;
         if (nextTier) {
-            const progress = Math.min(100, Math.round((profile.lifetimePoints / nextTier.threshold) * 100));
-            const pointsNeeded = Math.max(0, nextTier.threshold - profile.lifetimePoints);
+            const progress = Math.min(100, Math.round((lifetimePoints / nextTier.threshold) * 100));
+            const pointsNeeded = Math.max(0, nextTier.threshold - lifetimePoints);
 
             nextTierData = {
                 name: nextTier.name,
@@ -79,19 +56,20 @@ export async function GET(req: NextRequest) {
             };
         }
 
+
         // Calculate redemption value
         const burnRatio = settings?.burnRatio || 100; // 100 points = 1 TL default
         const minSpendLimit = settings?.minSpendLimit || 0;
-        const maxPointUsage = settings?.maxPointUsage || profile.pointsBalance;
+        const maxPointUsage = settings?.maxPointUsage || points;
 
-        const maxRedeemablePoints = Math.min(profile.pointsBalance, maxPointUsage);
+        const maxRedeemablePoints = Math.min(points, maxPointUsage);
         const redeemValue = maxRedeemablePoints / burnRatio;
-        const canRedeem = profile.pointsBalance >= burnRatio;
+        const canRedeem = points >= burnRatio;
 
         return NextResponse.json({
-            points: profile.pointsBalance,
-            tier: profile.tier,
-            lifetimePoints: profile.lifetimePoints,
+            points,
+            tier,
+            lifetimePoints,
             nextTier: nextTierData,
             canRedeem,
             maxRedeemablePoints,
