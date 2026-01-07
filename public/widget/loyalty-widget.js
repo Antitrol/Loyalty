@@ -41,26 +41,52 @@
 
     // Get İkas customer ID
     function getIkasCustomerId() {
-        // Method 1: From İkas App Bridge
-        if (window.IKasAppBridge && window.IKasAppBridge.getCustomer) {
-            const customer = window.IKasAppBridge.getCustomer();
-            return customer?.id;
+        // Method 1: From customerToken JWT (İkas standard)
+        const token = localStorage.getItem('customerToken');
+        if (token && token.includes('.')) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.id) {
+                    console.log('[Loyalty Widget] Customer ID from JWT:', payload.id);
+                    return payload.id;
+                }
+            } catch (e) {
+                console.error('[Loyalty Widget] Failed to decode customerToken:', e);
+            }
         }
 
-        // Method 2: From localStorage
+        // Method 2: From İkas App Bridge
+        if (window.IKasAppBridge && window.IKasAppBridge.getCustomer) {
+            const customer = window.IKasAppBridge.getCustomer();
+            if (customer?.id) {
+                console.log('[Loyalty Widget] Customer ID from App Bridge:', customer.id);
+                return customer.id;
+            }
+        }
+
+        // Method 3: From localStorage (legacy)
         const customerData = localStorage.getItem('ikas_customer');
         if (customerData) {
             try {
                 const parsed = JSON.parse(customerData);
-                return parsed.id;
+                if (parsed.id) {
+                    console.log('[Loyalty Widget] Customer ID from localStorage:', parsed.id);
+                    return parsed.id;
+                }
             } catch (e) {
                 console.error('[Loyalty Widget] Failed to parse customer data:', e);
             }
         }
 
-        // Method 3: From URL parameter (for testing)
+        // Method 4: From URL parameter (for testing)
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('customerId');
+        const urlCustomerId = urlParams.get('customerId');
+        if (urlCustomerId) {
+            console.log('[Loyalty Widget] Customer ID from URL:', urlCustomerId);
+            return urlCustomerId;
+        }
+
+        return null;
     }
 
     // Fetch loyalty data from API
