@@ -86,6 +86,13 @@
     // Render logged out state
     function renderLoggedOutState() {
         const widget = createWidgetElement();
+
+        // Apply basic widget settings for positioning
+        const position = CONFIG.position || 'bottom-right';
+        widget.className = `loyalty-widget loyalty-widget-${position}`;
+        widget.setAttribute('data-theme', 'light');
+        widget.setAttribute('data-animations', 'true');
+
         widget.innerHTML = `
             <div class="loyalty-widget-badge" data-state="logged-out">
                 <div class="loyalty-icon">🎁</div>
@@ -104,6 +111,13 @@
     // Render error state
     function renderErrorState() {
         const widget = createWidgetElement();
+
+        // Apply basic widget settings for positioning
+        const position = CONFIG.position || 'bottom-right';
+        widget.className = `loyalty-widget loyalty-widget-${position}`;
+        widget.setAttribute('data-theme', 'light');
+        widget.setAttribute('data-animations', 'true');
+
         widget.innerHTML = `
             <div class="loyalty-widget-badge" data-state="error">
                 <div class="loyalty-icon">⚠️</div>
