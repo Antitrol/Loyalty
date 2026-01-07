@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && prisma generate && next build",
+    "build": "prisma generate && prisma db push --accept-data-loss && next build",
     "start": "next start",
     "lint": "next lint",
     "codegen": "graphql-codegen --config src/lib/ikas-client/codegen.ts",
@@ -18,7 +18,7 @@
     "prisma:studio": "prisma studio",
     "apply:ai-rules": "npx @intellectronica/ruler apply",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma migrate deploy && prisma generate && next build"
+    "vercel-build": "prisma generate && prisma db push --accept-data-loss && next build"
   },
   "dependencies": {
     "@ikas/admin-api-client": "^2.0.11",
