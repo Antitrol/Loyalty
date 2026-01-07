@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
         // Get settings
         const settings = await prisma.loyaltySettings.findUnique({ where: { id: 'default' } });
 
-        const tiers: TierConfig[] = (settings?.tiers ? settings.tiers as TierConfig[] : null) || [
+        const tiers: TierConfig[] = (settings?.tiers as unknown as TierConfig[]) || [
             { name: 'Standard', threshold: 0, multiplier: 1 },
             { name: 'Bronze', threshold: 5000, multiplier: 1.1 },
             { name: 'Silver', threshold: 10000, multiplier: 1.25 },
