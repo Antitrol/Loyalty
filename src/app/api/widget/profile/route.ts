@@ -5,6 +5,7 @@ import { getLoyaltyProfile } from '@/lib/loyalty/attributes';
 import { determineTier } from '@/lib/loyalty/earn';
 import { prisma } from '@/lib/prisma';
 import { TierConfig } from '@/lib/loyalty/types';
+import { LoyaltySettings } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
