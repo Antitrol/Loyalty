@@ -37,8 +37,15 @@ export async function GET(req: NextRequest) {
             { name: 'Platinum', threshold: 50000, multiplier: 2.0 },
         ];
 
-        // Determine tier based on points
-        const tier = determineTier(lifetimePoints, { tiers } as unknown as Partial<LoyaltySettings>);
+        // Determine tier based on points (inline to avoid type issues)
+        const sortedTiers = [...tiers].sort((a, b) => b.threshold - a.threshold);
+        let tier: string = 'Standard';
+        for (const t of sortedTiers) {
+            if (lifetimePoints >= t.threshold) {
+                tier = t.name;
+                break;
+            }
+        }
 
         // Find next tier
         const currentTierIndex = tiers.findIndex(t => t.name === tier);
