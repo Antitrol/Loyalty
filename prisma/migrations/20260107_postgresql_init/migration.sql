@@ -1,56 +1,62 @@
 -- CreateTable
 CREATE TABLE "AuthToken" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "merchantId" TEXT NOT NULL,
     "authorizedAppId" TEXT,
     "salesChannelId" TEXT,
     "type" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "deleted" BOOLEAN NOT NULL DEFAULT false,
     "accessToken" TEXT NOT NULL,
     "tokenType" TEXT NOT NULL,
     "expiresIn" INTEGER NOT NULL,
-    "expireDate" DATETIME NOT NULL,
+    "expireDate" TIMESTAMP(3) NOT NULL,
     "refreshToken" TEXT NOT NULL,
-    "scope" TEXT
+    "scope" TEXT,
+
+    CONSTRAINT "AuthToken_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "LoyaltyTransaction" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "customerId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "points" INTEGER NOT NULL,
-    "amount" REAL,
-    "metadata" JSONB
+    "amount" DOUBLE PRECISION,
+    "metadata" JSONB,
+
+    CONSTRAINT "LoyaltyTransaction_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "LoyaltyBalance" (
-    "customerId" TEXT NOT NULL PRIMARY KEY,
+    "customerId" TEXT NOT NULL,
     "firstName" TEXT,
     "lastName" TEXT,
     "email" TEXT,
     "points" INTEGER NOT NULL DEFAULT 0,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "LoyaltyBalance_pkey" PRIMARY KEY ("customerId")
 );
 
 -- CreateTable
 CREATE TABLE "LoyaltySettings" (
-    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
-    "earnPerAmount" REAL NOT NULL DEFAULT 1.0,
-    "earnUnitAmount" REAL NOT NULL DEFAULT 1.0,
-    "earnRatio" REAL NOT NULL DEFAULT 1.0,
+    "id" TEXT NOT NULL DEFAULT 'default',
+    "earnPerAmount" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+    "earnUnitAmount" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
+    "earnRatio" DOUBLE PRECISION NOT NULL DEFAULT 1.0,
     "welcomeBonus" INTEGER NOT NULL DEFAULT 0,
     "excludeShipping" BOOLEAN NOT NULL DEFAULT false,
     "excludeDiscounted" BOOLEAN NOT NULL DEFAULT false,
     "categoryBonuses" JSONB,
     "tiers" JSONB,
-    "burnRatio" REAL NOT NULL DEFAULT 0.01,
-    "minSpendLimit" REAL NOT NULL DEFAULT 0,
-    "maxPointUsage" REAL NOT NULL DEFAULT 0,
+    "burnRatio" DOUBLE PRECISION NOT NULL DEFAULT 0.01,
+    "minSpendLimit" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "maxPointUsage" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "widgetPrimaryColor" TEXT NOT NULL DEFAULT '#4F46E5',
     "widgetLabel" TEXT NOT NULL DEFAULT 'Puan',
     "widgetSecondaryColor" TEXT NOT NULL DEFAULT '#818CF8',
@@ -61,7 +67,9 @@ CREATE TABLE "LoyaltySettings" (
     "widgetAutoExpand" BOOLEAN NOT NULL DEFAULT false,
     "widgetBorderRadius" INTEGER NOT NULL DEFAULT 16,
     "widgetShadowIntensity" TEXT NOT NULL DEFAULT 'medium',
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "LoyaltySettings_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
