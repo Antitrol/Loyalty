@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
         ];
 
         // Determine tier based on points
-        const tier = determineTier(lifetimePoints, { tiers } as Partial<LoyaltySettings>);
+        const tier = determineTier(lifetimePoints, { tiers } as unknown as Partial<LoyaltySettings>);
 
         // Find next tier
         const currentTierIndex = tiers.findIndex(t => t.name === tier);
