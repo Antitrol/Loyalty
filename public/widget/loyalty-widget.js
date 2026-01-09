@@ -363,11 +363,148 @@
     // Open redemption modal
     function openRedeemModal() {
         const label = widgetSettings.label || 'Puan';
-        const redeemUrl = `${CONFIG.apiBaseUrl}/loyalty/redeem`;
 
-        if (confirm(`${widgetData.maxRedeemablePoints} ${label} kullanarak ${widgetData.redeemValue.toFixed(2)}₺ indirim almak ister misiniz?`)) {
-            window.location.href = redeemUrl;
+        // Create modal HTML
+        const modal = document.createElement('div');
+        modal.className = 'loyalty-redeem-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <h3>Puan Kullan</h3>
+                <p>${widgetData.maxRedeemablePoints} ${label} kullanarak <strong>${widgetData.redeemValue.toFixed(2)}₺</strong> indirim almak ister misiniz?</p>
+                <div class="modal-actions">
+                    <button class="btn-cancel">İptal</button>
+                    <button class="btn-confirm">Onayla</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add event listeners
+        const overlay = modal.querySelector('.modal-overlay');
+        const cancelBtn = modal.querySelector('.btn-cancel');
+        const confirmBtn = modal.querySelector('.btn-confirm');
+
+        const closeModal = () => {
+            modal.remove();
+        };
+
+        overlay.onclick = closeModal;
+        cancelBtn.onclick = closeModal;
+        confirmBtn.onclick = () => handleRedeem(modal);
+
+        // Trigger animation
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+
+    // Handle point redemption
+    async function handleRedeem(modal) {
+        const confirmBtn = modal.querySelector('.btn-confirm');
+        const cancelBtn = modal.querySelector('.btn-cancel');
+
+        // Disable buttons and show loading
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        confirmBtn.textContent = 'İşleniyor...';
+
+        try {
+            const response = await fetch(`${CONFIG.apiBaseUrl}/api/widget/redeem`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    customerId,
+                    pointsToRedeem: widgetData.maxRedeemablePoints
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update widget data with new balance
+                widgetData.points = data.newBalance;
+                widgetData.maxRedeemablePoints = Math.min(data.newBalance, widgetData.maxRedeemablePoints);
+                widgetData.redeemValue = data.newBalance / (widgetSettings.burnRatio || 100);
+                widgetData.canRedeem = data.newBalance >= (widgetSettings.burnRatio || 100);
+
+                // Show success modal
+                showSuccessModal(data.code, data.discountValue, data.newBalance);
+                modal.remove();
+            } else {
+                throw new Error(data.error || 'Puan kullanılamadı');
+            }
+        } catch (error) {
+            console.error('[Loyalty Widget] Redeem error:', error);
+            alert('Bir hata oluştu: ' + error.message);
+            modal.remove();
         }
+    }
+
+    // Show success modal with coupon code
+    function showSuccessModal(code, discountValue, newBalance) {
+        const label = widgetSettings.label || 'Puan';
+
+        const modal = document.createElement('div');
+        modal.className = 'loyalty-redeem-modal loyalty-success-modal';
+        modal.innerHTML = `
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="success-icon">✅</div>
+                <h3>İndirim Kodunuz Hazır!</h3>
+                <div class="coupon-code">${code}</div>
+                <button class="btn-copy">📋 Kodu Kopyala</button>
+                <p class="success-info">
+                    <strong>${discountValue.toFixed(2)}₺</strong> indirim kazandınız!<br>
+                    Sepetinizde bu kodu kullanabilirsiniz.
+                </p>
+                <div class="new-balance">
+                    Yeni Bakiye: <strong>${formatNumber(newBalance)}</strong> ${label}
+                </div>
+                <button class="btn-close-success">Kapat</button>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const copyBtn = modal.querySelector('.btn-copy');
+        const closeBtn = modal.querySelector('.btn-close-success');
+        const overlay = modal.querySelector('.modal-overlay');
+
+        // Copy to clipboard
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(code).then(() => {
+                copyBtn.textContent = '✓ Kopyalandı!';
+                copyBtn.style.background = '#10B981';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Kodu Kopyala';
+                    copyBtn.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                copyBtn.textContent = '✓ Kopyalandı!';
+            });
+        };
+
+        const closeModal = () => {
+            modal.remove();
+            // Re-render widget with updated balance
+            render();
+        };
+
+        closeBtn.onclick = closeModal;
+        overlay.onclick = closeModal;
+
+        // Trigger animation
+        setTimeout(() => modal.classList.add('active'), 10);
     }
 
     // Utility: Get tier emoji
