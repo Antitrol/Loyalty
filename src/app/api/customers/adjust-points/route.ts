@@ -1,16 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getIkas } from '@/helpers/api-helpers';
-import { AuthTokenManager } from '@/models/auth-token/manager';
+import { JwtHelpers } from '@/helpers/jwt-helpers';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Adjust customer points (add or remove)
- * Admin only - requires auth token
+ * Admin only - requires JWT auth token
  */
 export async function POST(req: NextRequest) {
     try {
+        // Verify JWT token from header
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader?.startsWith('JWT ')) {
+            return NextResponse.json({
+                success: false,
+                error: 'Unauthorized - No JWT token provided'
+            }, { status: 401 });
+        }
+
+        const jwtToken = authHeader.split(' ')[1];
+        const payload = JwtHelpers.verifyToken(jwtToken);
+        if (!payload) {
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid or expired JWT token'
+            }, { status: 401 });
+        }
+
         const body = await req.json();
         const { customerId, points, reason, type } = body;
 

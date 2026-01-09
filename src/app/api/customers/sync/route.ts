@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getIkas } from '@/helpers/api-helpers';
 import { AuthTokenManager } from '@/models/auth-token/manager';
 import { GET_CUSTOMERS } from '@/lib/graphql/loyalty';
+import { JwtHelpers } from '@/helpers/jwt-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,12 +13,30 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(req: NextRequest) {
     try {
-        // Get auth token
+        // Verify JWT token from header
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader?.startsWith('JWT ')) {
+            return NextResponse.json({
+                success: false,
+                error: 'Unauthorized - No JWT token provided'
+            }, { status: 401 });
+        }
+
+        const jwtToken = authHeader.split(' ')[1];
+        const payload = JwtHelpers.verifyToken(jwtToken);
+        if (!payload) {
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid or expired JWT token'
+            }, { status: 401 });
+        }
+
+        // Get auth token from database using payload info
         const tokens = await AuthTokenManager.list();
         if (tokens.length === 0) {
             return NextResponse.json({
                 success: false,
-                error: 'No auth token found'
+                error: 'No İkas auth token found. Please reconnect the app.'
             }, { status: 401 });
         }
 
