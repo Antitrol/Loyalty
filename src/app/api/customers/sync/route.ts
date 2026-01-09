@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
         }
 
         // Get İkas auth token for this merchant
-        const merchantId = payload.merchantId;
+        // JWT uses standard claims: 'sub' is merchantId, 'aud' is authorizedAppId
+        const merchantId = payload.sub;
         if (!merchantId) {
             return NextResponse.json({
                 success: false,
