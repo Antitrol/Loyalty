@@ -113,23 +113,72 @@ export default function Dashboard() {
   };
 
   const handleAdjustPoints = async () => {
-    if (!selectedCustomer || !token) return;
+    if (!selectedCustomer || !token || adjustPoints === 0) return;
+
+    setSaving(true);
     try {
-      const res = await fetch(`/api/customers/${selectedCustomer.customerId}/adjust`, {
+      const type = adjustPoints > 0 ? 'MANUAL_ADD' : 'MANUAL_REMOVE';
+
+      const res = await fetch('/api/customers/adjust-points', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `JWT ${token}`
         },
-        body: JSON.stringify({ points: adjustPoints, reason: adjustReason })
+        body: JSON.stringify({
+          customerId: selectedCustomer.customerId,
+          points: adjustPoints,
+          reason: adjustReason || 'Manuel ayarlama',
+          type
+        })
       });
-      if (res.ok) {
-        alert('Puan güncellendi.');
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert(`✅ ${data.message}\nYeni bakiye: ${data.newBalance} puan`);
         setSelectedCustomer(null);
-        await fetchData(token); // Refresh list
+        setAdjustPoints(0);
+        setAdjustReason('');
+        await fetchData(token);
+      } else {
+        alert(`❌ Hata: ${data.error || 'Bilinmeyen hata'}`);
       }
-    } catch (e) {
-      alert('Hata oluştu.');
+    } catch (e: any) {
+      alert('❌ Bağlantı hatası: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSyncCustomers = async () => {
+    if (!token) return;
+
+    if (!confirm('İkas\'tan tüm müşterileri senkronize etmek istediğinize emin misiniz?')) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch('/api/customers/sync', {
+        method: 'POST',
+        headers: {
+          'Authorization': `JWT ${token}`
+        }
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alert(`✅ ${data.message}\n\nYeni: ${data.synced}\nMevcut: ${data.existing}\nToplam: ${data.total}`);
+        await fetchData(token);
+      } else {
+        alert(`❌ Hata: ${data.error || 'Senkronizasyon başarısız'}`);
+      }
+    } catch (e: any) {
+      alert('❌ Bağlantı hatası: ' + e.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -274,7 +323,19 @@ export default function Dashboard() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
               <h2 className="text-lg font-semibold text-gray-800">Müşteri Listesi</h2>
-              <input type="text" placeholder="Ara..." className="border rounded px-3 py-1 text-sm" />
+              <div className="flex gap-3 items-center">
+                <input type="text" placeholder="Ara..." className="border rounded px-3 py-1 text-sm" />
+                <button
+                  onClick={handleSyncCustomers}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {saving ? 'Senkronize ediliyor...' : 'Müşterileri Senkronize Et'}
+                </button>
+              </div>
             </div>
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
