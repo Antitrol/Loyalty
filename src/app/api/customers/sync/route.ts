@@ -55,7 +55,9 @@ export async function POST(req: NextRequest) {
             }, { status: 401 });
         }
 
-        const client = getIkas(authToken);
+        // Convert to AuthToken model
+        const token = AuthTokenManager['toModel'](authToken);
+        const client = getIkas(token);
 
         // Fetch customers from İkas
         const query = GET_CUSTOMERS;
