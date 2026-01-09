@@ -31,17 +31,31 @@ export async function POST(req: NextRequest) {
             }, { status: 401 });
         }
 
-        // Get auth token from database using payload info
-        const tokens = await AuthTokenManager.list();
-        if (tokens.length === 0) {
+        // Get İkas auth token for this merchant
+        const merchantId = payload.merchantId;
+        if (!merchantId) {
             return NextResponse.json({
                 success: false,
-                error: 'No İkas auth token found. Please reconnect the app.'
+                error: 'No merchant ID in JWT token'
             }, { status: 401 });
         }
 
-        const token = tokens[0];
-        const client = getIkas(token);
+        // Findauth token by merchantId
+        const authToken = await prisma.authToken.findFirst({
+            where: {
+                merchantId,
+                deleted: false
+            }
+        });
+
+        if (!authToken) {
+            return NextResponse.json({
+                success: false,
+                error: 'No İkas auth token found for this merchant. Please reconnect the app from İkas admin panel.'
+            }, { status: 401 });
+        }
+
+        const client = getIkas(authToken);
 
         // Fetch customers from İkas
         const query = GET_CUSTOMERS;
