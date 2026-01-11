@@ -363,18 +363,42 @@
     // Open redemption modal
     function openRedeemModal() {
         const label = widgetSettings.label || 'Puan';
+        const burnRatio = widgetSettings.burnRatio || 100;
 
-        // Create modal HTML
+        // Available redemption tiers
+        const tiers = [
+            { points: 100, discount: 1.0 },
+            { points: 250, discount: 2.5 },
+            { points: 500, discount: 5.0 },
+            { points: 1000, discount: 10.0 }
+        ];
+
+        // Filter tiers based on current points
+        const availableTiers = tiers.filter(tier => tier.points <= widgetData.points);
+
+        if (availableTiers.length === 0) {
+            alert(`${label} kullanmak için minimum ${tiers[0].points} puana ihtiyacınız var.`);
+            return;
+        }
+
+        // Create modal HTML with tier options
         const modal = document.createElement('div');
         modal.className = 'loyalty-redeem-modal';
         modal.innerHTML = `
             <div class="modal-overlay"></div>
             <div class="modal-content">
                 <h3>Puan Kullan</h3>
-                <p>${widgetData.maxRedeemablePoints} ${label} kullanarak <strong>${widgetData.redeemValue.toFixed(2)}₺</strong> indirim almak ister misiniz?</p>
+                <p>Kullanmak istediğiniz puan miktarını seçin:</p>
+                <div class="tier-options">
+                    ${availableTiers.map(tier => `
+                        <button class="tier-option" data-points="${tier.points}" data-discount="${tier.discount}">
+                            <div class="tier-points">${tier.points} ${label}</div>
+                            <div class="tier-discount">${tier.discount.toFixed(2)}₺ İndirim</div>
+                        </button>
+                    `).join('')}
+                </div>
                 <div class="modal-actions">
                     <button class="btn-cancel">İptal</button>
-                    <button class="btn-confirm">Onayla</button>
                 </div>
             </div>
         `;
@@ -384,7 +408,7 @@
         // Add event listeners
         const overlay = modal.querySelector('.modal-overlay');
         const cancelBtn = modal.querySelector('.btn-cancel');
-        const confirmBtn = modal.querySelector('.btn-confirm');
+        const tierOptions = modal.querySelectorAll('.tier-option');
 
         const closeModal = () => {
             modal.remove();
@@ -392,16 +416,60 @@
 
         overlay.onclick = closeModal;
         cancelBtn.onclick = closeModal;
-        confirmBtn.onclick = () => handleRedeem(modal);
+
+        // Handle tier selection
+        tierOptions.forEach(option => {
+            option.onclick = () => {
+                const points = parseInt(option.dataset.points);
+                const discount = parseFloat(option.dataset.discount);
+                confirmRedemption(modal, points, discount);
+            };
+        });
 
         // Trigger animation
         setTimeout(() => modal.classList.add('active'), 10);
     }
 
+    // Show confirmation for selected tier
+    function confirmRedemption(parentModal, points, discount) {
+        const label = widgetSettings.label || 'Puan';
+
+        // Replace modal content with confirmation
+        const content = parentModal.querySelector('.modal-content');
+        content.innerHTML = `
+            <h3>Onaylıyor musunuz?</h3>
+            <div class="confirmation-details">
+                <div class="confirm-row">
+                    <span>Kullanılacak ${label}:</span>
+                    <strong>${points} ${label}</strong>
+                </div>
+                <div class="confirm-row">
+                    <span>İndirim Tutarı:</span>
+                    <strong>${discount.toFixed(2)}₺</strong>
+                </div>
+                <div class="confirm-row">
+                    <span>Kalan ${label}:</span>
+                    <strong>${widgetData.points - points} ${label}</strong>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel">İptal</button>
+                <button class="btn-confirm">Onayla</button>
+            </div>
+        `;
+
+        const cancelBtn = content.querySelector('.btn-cancel');
+        const confirmBtn = content.querySelector('.btn-confirm');
+
+        cancelBtn.onclick = () => parentModal.remove();
+        confirmBtn.onclick = () => handleRedeem(parentModal, points);
+    }
+
     // Handle point redemption
-    async function handleRedeem(modal) {
-        const confirmBtn = modal.querySelector('.btn-confirm');
-        const cancelBtn = modal.querySelector('.btn-cancel');
+    async function handleRedeem(modal, pointsToRedeem) {
+        const content = modal.querySelector('.modal-content');
+        const confirmBtn = content.querySelector('.btn-confirm');
+        const cancelBtn = content.querySelector('.btn-cancel');
 
         // Disable buttons and show loading
         confirmBtn.disabled = true;
@@ -416,7 +484,7 @@
                 },
                 body: JSON.stringify({
                     customerId,
-                    pointsToRedeem: widgetData.maxRedeemablePoints
+                    pointsToRedeem
                 })
             });
 

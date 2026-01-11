@@ -612,6 +612,76 @@
     cursor: not-allowed;
 }
 
+/* Tier Selection Styles */
+.tier-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.tier-option {
+    background: linear-gradient(145deg, #F9FAFB, #F3F4F6);
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.tier-option:hover {
+    border-color: #4F46E5;
+    background: linear-gradient(145deg, #EEF2FF, #E0E7FF);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+.tier-points {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.tier-discount {
+    font-size: 14px;
+    color: #10B981;
+    font-weight: 600;
+}
+
+/* Confirmation Details */
+.confirmation-details {
+    background: #F9FAFB;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+}
+
+.confirm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.confirm-row:last-child {
+    border-bottom: none;
+}
+
+.confirm-row span {
+    color: #6B7280;
+    font-size: 14px;
+}
+
+.confirm-row strong {
+    color: #1F2937;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
 /* Success Modal Styles */
 .loyalty-success-modal .modal-content {
     text-align: center;

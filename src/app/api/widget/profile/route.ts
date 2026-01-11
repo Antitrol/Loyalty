@@ -94,7 +94,12 @@ export async function GET(req: NextRequest) {
                 animations: (settings as any)?.widgetAnimations ?? true,
                 autoExpand: (settings as any)?.widgetAutoExpand ?? false,
                 borderRadius: (settings as any)?.widgetBorderRadius || 16,
-                shadowIntensity: (settings as any)?.widgetShadowIntensity || 'medium'
+                shadowIntensity: (settings as any)?.widgetShadowIntensity || 'medium',
+                // Campaign IDs for tier-based redemption
+                campaign100Id: settings?.campaign100Id,
+                campaign250Id: settings?.campaign250Id,
+                campaign500Id: settings?.campaign500Id,
+                campaign1000Id: settings?.campaign1000Id,
             }
         });
 

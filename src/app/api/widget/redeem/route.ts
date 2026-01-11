@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { randomBytes } from 'crypto';
+import { getIkas } from '@/helpers/api-helpers';
+import { getTierByPoints, getCampaignIdForPoints, addCouponToTierCampaign, ensureTierCampaign } from '@/lib/loyalty/campaign-tiers';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Widget Redeem Endpoint - No auth required
- * Allows customers to redeem points directly from widget
+ * Widget Redeem Endpoint - Tier-based redemption with İKAS coupon integration
+ * Creates real İKAS coupon codes for predefined point tiers (100, 250, 500, 1000)
  */
 export async function POST(req: NextRequest) {
     try {
@@ -25,6 +27,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: false,
                 error: 'Invalid points amount'
+            }, { status: 400 });
+        }
+
+        // Validate tier
+        const tier = getTierByPoints(pointsToRedeem);
+        if (!tier) {
+            return NextResponse.json({
+                success: false,
+                error: `Invalid redemption amount. Please choose 100, 250, 500, or 1000 points.`
             }, { status: 400 });
         }
 
@@ -50,18 +61,100 @@ export async function POST(req: NextRequest) {
             }, { status: 400 });
         }
 
-        // Get settings for burn ratio
-        const settings = await prisma.loyaltySettings.findUnique({
-            where: { id: 'default' }
-        });
+        // Get or create campaign for this tier
+        let campaignId = await getCampaignIdForPoints(pointsToRedeem);
 
-        const burnRatio = settings?.burnRatio || 100; // 100 points = 1 TL
-        const discountValue = pointsToRedeem / burnRatio;
+        // If no campaign exists, try to create one
+        if (!campaignId) {
+            console.log(`⚠️ No campaign found for ${pointsToRedeem} points, attempting to create...`);
+
+            const settings = await prisma.loyaltySettings.findUnique({
+                where: { id: 'default' }
+            });
+
+            if (!settings?.autoCreateCampaigns) {
+                return NextResponse.json({
+                    success: false,
+                    error: 'Campaign not configured. Please contact administrator.'
+                }, { status: 500 });
+            }
+
+            // Get auth token for İKAS API
+            const authToken = await prisma.authToken.findFirst({
+                where: { deleted: false },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (!authToken) {
+                console.error('❌ No auth token found for campaign creation');
+                return NextResponse.json({
+                    success: false,
+                    error: 'Service configuration error. Please contact administrator.'
+                }, { status: 500 });
+            }
+
+            // Create İKAS GraphQL client
+            const ikasClient = getIkas(authToken);
+
+            try {
+                campaignId = await ensureTierCampaign(ikasClient, tier);
+
+                // Save campaign ID to settings
+                const updateData = { [tier.field]: campaignId };
+                await prisma.loyaltySettings.upsert({
+                    where: { id: 'default' },
+                    update: updateData,
+                    create: { id: 'default', ...updateData }
+                });
+
+                console.log(`✅ Created and saved campaign: ${campaignId}`);
+            } catch (campaignError) {
+                console.error('❌ Failed to create campaign:', campaignError);
+                return NextResponse.json({
+                    success: false,
+                    error: 'Failed to create discount campaign. Please try again later.'
+                }, { status: 500 });
+            }
+        }
+
+        if (!campaignId) {
+            return NextResponse.json({
+                success: false,
+                error: 'Campaign configuration missing. Please contact administrator.'
+            }, { status: 500 });
+        }
 
         // Generate unique coupon code
         const timestamp = Date.now().toString(36).toUpperCase();
         const random = randomBytes(3).toString('hex').toUpperCase();
-        const code = `LOYALTY-${timestamp}-${random}`;
+        const code = `LOYALTY-${tier.points}-${timestamp}`;
+
+        // İKAS coupon creation flag
+        let ikasConnectionCouponCreated = false;
+
+        try {
+            // Get auth token
+            const authToken = await prisma.authToken.findFirst({
+                where: { deleted: false },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (authToken) {
+                // Create İKAS GraphQL client
+                const ikasClient = getIkas(authToken);
+
+                // Add coupon to İKAS campaign
+                await addCouponToTierCampaign(ikasClient, campaignId, code);
+                ikasConnectionCouponCreated = true;
+                console.log(`✅ İKAS coupon created: ${code} for campaign ${campaignId}`);
+            } else {
+                console.warn('⚠️ No auth token found, creating local coupon only');
+            }
+        } catch (ikasError) {
+            console.error('❌ İKAS coupon creation failed:', ikasError);
+            // Continue with local coupon - we'll still deduct points and log transaction
+            // but the coupon won't work in checkout
+        }
 
         // Start transaction - update balance and log redemption
         const [updatedCustomer, transaction] = await prisma.$transaction([
@@ -78,11 +171,13 @@ export async function POST(req: NextRequest) {
                     customerId,
                     type: 'REDEEM',
                     points: -pointsToRedeem,
-                    amount: discountValue,
+                    amount: tier.amount,
                     metadata: {
                         code,
-                        discountValue,
-                        burnRatio,
+                        discountValue: tier.amount,
+                        campaignId,
+                        ikasConnectionCouponCreated,
+                        tier: tier.points,
                         timestamp: new Date().toISOString()
                     }
                 }
@@ -92,10 +187,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             code,
-            discountValue: parseFloat(discountValue.toFixed(2)),
+            discountValue: tier.amount,
             pointsRedeemed: pointsToRedeem,
             newBalance: updatedCustomer.points,
-            message: `${pointsToRedeem} puan kullanıldı. ${discountValue.toFixed(2)}₺ indirim kazandınız!`
+            message: `${pointsToRedeem} puan kullanıldı. ${tier.amount.toFixed(2)}₺ indirim kazandınız!${!ikasConnectionCouponCreated ? ' (Kupon henüz aktif değil, lütfen daha sonra tekrar deneyin)' : ''}`
         });
 
     } catch (error) {
