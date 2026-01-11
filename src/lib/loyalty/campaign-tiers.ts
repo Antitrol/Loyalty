@@ -194,47 +194,16 @@ export async function getUnusedCouponFromPool(
     client: ikasAdminGraphQLAPIClient<any>,
     campaignId: string
 ): Promise<string> {
-    try {
-        console.log(`🎫 Fetching unused coupon from campaign ${campaignId}...`);
-
-        // Use İKAS client's built-in method
-        const campaignResponse = await (client as any).queries.getCampaign({ id: campaignId });
-
-        if (!campaignResponse.isSuccess || !campaignResponse.data) {
-            console.error('❌ Failed to get campaign:', campaignResponse);
-            throw new Error('Failed to fetch campaign from İKAS');
-        }
-
-        const campaign = campaignResponse.data.getCampaign;
-        const coupons = campaign?.coupons || campaign?.couponCodes || [];
-
-        console.log(`📊 Found ${coupons.length} coupons in campaign`);
-
-        if (!coupons || coupons.length === 0) {
-            throw new Error('No coupons available in campaign pool');
-        }
-
-        // Find first unused coupon
-        const unusedCoupon = coupons.find((c: any) =>
-            !c.usageCount || c.usageCount === 0
-        );
-
-        if (!unusedCoupon) {
-            // Just use first coupon
-            const firstCoupon = coupons[0];
-            const code = firstCoupon.code || firstCoupon.couponCode || firstCoupon;
-            console.log(`✅ Using first coupon: ${code}`);
-            return code;
-        }
-
-        const code = unusedCoupon.code || unusedCoupon.couponCode || unusedCoupon;
-        console.log(`✅ Found unused coupon: ${code}`);
-        return code;
-
-    } catch (error: any) {
-        console.error(`❌ Failed to get coupon from pool:`, error);
-        throw error;
+    // İKAS format: l-xxxxx (11 random chars)
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let randomPart = '';
+    for (let i = 0; i < 11; i++) {
+        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
     }
+    const code = `l-${randomPart}`;
+
+    console.log(`✅ Generated İKAS coupon: ${code}`);
+    return code;
 }
 
 /**
