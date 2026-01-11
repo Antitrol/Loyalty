@@ -155,15 +155,35 @@ export async function addCouponToTierCampaign(
     campaignId: string,
     couponCode: string
 ): Promise<void> {
-    await client.mutate<{ addCouponsToCampaign: any }>({
-        mutation: ADD_COUPONS,
-        variables: {
-            input: {
-                campaignId,
-                coupons: [couponCode]
+    try {
+        console.log(`🎫 Adding coupon ${couponCode} to campaign ${campaignId}...`);
+
+        const result = await client.mutate<{ addCouponsToCampaign: any }>({
+            mutation: ADD_COUPONS,
+            variables: {
+                input: {
+                    campaignId,
+                    coupons: [couponCode]
+                }
             }
+        });
+
+        // Check if mutation was successful
+        if (!result.data?.addCouponsToCampaign) {
+            console.error('❌ addCouponsToCampaign returned no data:', result);
+            throw new Error('Failed to add coupon - no response data');
         }
-    });
+
+        console.log(`✅ Successfully added coupon ${couponCode}`);
+    } catch (error: any) {
+        console.error(`❌ Failed to add coupon ${couponCode}:`, error);
+        console.error('Error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error; // Re-throw to propagate error
+    }
 }
 
 /**
