@@ -25,9 +25,19 @@ export const CREATE_CAMPAIGN = gql`
 `;
 
 export const ADD_COUPONS = gql`
-  mutation AddCoupons($input: AddCouponsInput!) {
-    addCoupons(input: $input) {
+  mutation UpdateCampaignWithCoupon($id: ID!, $input: UpdateCampaignInput!) {
+    updateCampaign(id: $id, input: $input) {
+      id
+      title
+    }
+  }
+`;
+
+export const GENERATE_COUPONS = gql`
+  mutation GenerateCoupons($campaignId: ID!, $count: Int!, $prefix: String) {
+    generateCampaignCoupons(campaignId: $campaignId, count: $count, prefix: $prefix) {
       success
+      count
     }
   }
 `;
