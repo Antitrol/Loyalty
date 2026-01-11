@@ -41,3 +41,19 @@ export const GENERATE_COUPONS = gql`
     }
   }
 `;
+
+export const GET_CAMPAIGN_COUPONS = gql`
+  query GetCampaignCoupons($campaignId: ID!, $limit: Int, $offset: Int) {
+    campaign(id: $campaignId) {
+      id
+      coupons(limit: $limit, offset: $offset) {
+        data {
+          code
+          usageCount
+          usageLimit
+        }
+        total
+      }
+    }
+  }
+`;

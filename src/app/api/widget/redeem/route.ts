@@ -124,12 +124,8 @@ export async function POST(req: NextRequest) {
             }, { status: 500 });
         }
 
-        // Generate unique coupon code with L- prefix (matches İKAS campaign config)
-        const timestamp = Date.now().toString(36).toUpperCase();
-        const random = randomBytes(3).toString('hex').toUpperCase();
-        const code = `L-${timestamp}-${random}`;
-
-        // İKAS coupon creation flag
+        // Get unused coupon from İKAS campaign pool
+        let code: string;
         let ikasConnectionCouponCreated = false;
 
         try {
@@ -140,20 +136,29 @@ export async function POST(req: NextRequest) {
             });
 
             if (authToken) {
-                // Create İKAS GraphQL client (cast Prisma model to interface)
+                // Create İKAS GraphQL client
                 const ikasClient = getIkas(authToken as any);
 
-                // Add coupon to İKAS campaign
-                await addCouponToTierCampaign(ikasClient, campaignId, code);
+                // Import getUnusedCouponFromPool function
+                const { getUnusedCouponFromPool } = await import('@/lib/loyalty/campaign-tiers');
+
+                // Fetch unused coupon from pool
+                code = await getUnusedCouponFromPool(ikasClient, campaignId);
                 ikasConnectionCouponCreated = true;
-                console.log(`✅ İKAS coupon created: ${code} for campaign ${campaignId}`);
+                console.log(`✅ İKAS coupon fetched from pool: ${code} for campaign ${campaignId}`);
             } else {
-                console.warn('⚠️ No auth token found, creating local coupon only');
+                console.warn('⚠️ No auth token found, generating fallback coupon');
+                // Fallback: generate local coupon
+                const timestamp = Date.now().toString(36).toUpperCase();
+                const random = randomBytes(3).toString('hex').toUpperCase();
+                code = `L-${timestamp}-${random}`;
             }
         } catch (ikasError) {
-            console.error('❌ İKAS coupon creation failed:', ikasError);
-            // Continue with local coupon - we'll still deduct points and log transaction
-            // but the coupon won't work in checkout
+            console.error('❌ İKAS coupon pool fetch failed:', ikasError);
+            // Fallback: generate local coupon
+            const timestamp = Date.now().toString(36).toUpperCase();
+            const random = randomBytes(3).toString('hex').toUpperCase();
+            code = `L-${timestamp}-${random}`;
         }
 
         // Start transaction - update balance and log redemption
