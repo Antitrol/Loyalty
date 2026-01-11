@@ -158,7 +158,7 @@ export async function addCouponToTierCampaign(
     try {
         console.log(`🎫 Adding coupon ${couponCode} to campaign ${campaignId}...`);
 
-        const result = await client.mutate<{ addCouponsToCampaign: any }>({
+        const result = await client.mutate<{ addCoupons: any }>({
             mutation: ADD_COUPONS,
             variables: {
                 input: {
@@ -169,9 +169,9 @@ export async function addCouponToTierCampaign(
         });
 
         // Check if mutation was successful
-        if (!result.data?.addCouponsToCampaign) {
-            console.error('❌ addCouponsToCampaign returned no data:', result);
-            throw new Error('Failed to add coupon - no response data');
+        if (!result.data?.addCoupons?.success) {
+            console.error('❌ addCoupons mutation failed:', result);
+            throw new Error('Failed to add coupon - mutation returned failure');
         }
 
         console.log(`✅ Successfully added coupon ${couponCode}`);
