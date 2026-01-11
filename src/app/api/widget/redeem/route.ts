@@ -124,10 +124,10 @@ export async function POST(req: NextRequest) {
             }, { status: 500 });
         }
 
-        // Generate unique coupon code
+        // Generate unique coupon code with L- prefix (matches İKAS campaign config)
         const timestamp = Date.now().toString(36).toUpperCase();
         const random = randomBytes(3).toString('hex').toUpperCase();
-        const code = `LOYALTY-${tier.points}-${timestamp}`;
+        const code = `L-${timestamp}-${random}`;
 
         // İKAS coupon creation flag
         let ikasConnectionCouponCreated = false;
