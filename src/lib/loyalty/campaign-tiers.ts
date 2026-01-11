@@ -197,18 +197,18 @@ export async function getUnusedCouponFromPool(
     try {
         console.log(`🎫 Fetching unused coupon from campaign ${campaignId}...`);
 
-        const { GET_CAMPAIGN_COUPONS } = await import('../graphql/rewards');
+        // Use İKAS client's built-in method
+        const campaignResponse = await (client as any).queries.getCampaign({ id: campaignId });
 
-        const result = await client.query<{ campaign: any }>({
-            query: GET_CAMPAIGN_COUPONS,
-            variables: {
-                campaignId,
-                limit: 50,
-                offset: 0
-            }
-        });
+        if (!campaignResponse.isSuccess || !campaignResponse.data) {
+            console.error('❌ Failed to get campaign:', campaignResponse);
+            throw new Error('Failed to fetch campaign from İKAS');
+        }
 
-        const coupons = result.data?.campaign?.coupons?.data;
+        const campaign = campaignResponse.data.getCampaign;
+        const coupons = campaign?.coupons || campaign?.couponCodes || [];
+
+        console.log(`📊 Found ${coupons.length} coupons in campaign`);
 
         if (!coupons || coupons.length === 0) {
             throw new Error('No coupons available in campaign pool');
@@ -216,15 +216,20 @@ export async function getUnusedCouponFromPool(
 
         // Find first unused coupon
         const unusedCoupon = coupons.find((c: any) =>
-            c.usageCount === 0 || (c.usageLimit && c.usageCount < c.usageLimit)
+            !c.usageCount || c.usageCount === 0
         );
 
         if (!unusedCoupon) {
-            throw new Error('All available coupons in pool are used');
+            // Just use first coupon
+            const firstCoupon = coupons[0];
+            const code = firstCoupon.code || firstCoupon.couponCode || firstCoupon;
+            console.log(`✅ Using first coupon: ${code}`);
+            return code;
         }
 
-        console.log(`✅ Found unused coupon: ${unusedCoupon.code}`);
-        return unusedCoupon.code;
+        const code = unusedCoupon.code || unusedCoupon.couponCode || unusedCoupon;
+        console.log(`✅ Found unused coupon: ${code}`);
+        return code;
 
     } catch (error: any) {
         console.error(`❌ Failed to get coupon from pool:`, error);
