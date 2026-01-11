@@ -93,12 +93,8 @@ export async function POST(req: NextRequest) {
                 }, { status: 500 });
             }
 
-            // Create İKAS GraphQL client
-            const ikasClient = getIkas({
-                ...authToken,
-                authorizedAppId: authToken.authorizedAppId ?? undefined,
-                salesChannelId: authToken.salesChannelId ?? undefined,
-            });
+            // Create İKAS GraphQL client (cast Prisma model to interface)
+            const ikasClient = getIkas(authToken as any);
 
             try {
                 campaignId = await ensureTierCampaign(ikasClient, tier);
@@ -144,12 +140,8 @@ export async function POST(req: NextRequest) {
             });
 
             if (authToken) {
-                // Create İKAS GraphQL client
-                const ikasClient = getIkas({
-                    ...authToken,
-                    authorizedAppId: authToken.authorizedAppId ?? undefined,
-                    salesChannelId: authToken.salesChannelId ?? undefined,
-                });
+                // Create İKAS GraphQL client (cast Prisma model to interface)
+                const ikasClient = getIkas(authToken as any);
 
                 // Add coupon to İKAS campaign
                 await addCouponToTierCampaign(ikasClient, campaignId, code);
