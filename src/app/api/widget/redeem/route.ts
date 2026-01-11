@@ -94,7 +94,11 @@ export async function POST(req: NextRequest) {
             }
 
             // Create İKAS GraphQL client
-            const ikasClient = getIkas(authToken);
+            const ikasClient = getIkas({
+                ...authToken,
+                authorizedAppId: authToken.authorizedAppId ?? undefined,
+                salesChannelId: authToken.salesChannelId ?? undefined,
+            });
 
             try {
                 campaignId = await ensureTierCampaign(ikasClient, tier);
@@ -141,7 +145,11 @@ export async function POST(req: NextRequest) {
 
             if (authToken) {
                 // Create İKAS GraphQL client
-                const ikasClient = getIkas(authToken);
+                const ikasClient = getIkas({
+                    ...authToken,
+                    authorizedAppId: authToken.authorizedAppId ?? undefined,
+                    salesChannelId: authToken.salesChannelId ?? undefined,
+                });
 
                 // Add coupon to İKAS campaign
                 await addCouponToTierCampaign(ikasClient, campaignId, code);
