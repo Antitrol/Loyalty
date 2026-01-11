@@ -187,6 +187,52 @@ export async function addCouponToTierCampaign(
 }
 
 /**
+ * Get an unused coupon from İKAS campaign's coupon pool
+ * Uses existing coupons instead of trying to add new ones
+ */
+export async function getUnusedCouponFromPool(
+    client: ikasAdminGraphQLAPIClient<any>,
+    campaignId: string
+): Promise<string> {
+    try {
+        console.log(`🎫 Fetching unused coupon from campaign ${campaignId}...`);
+
+        const { GET_CAMPAIGN_COUPONS } = await import('../graphql/rewards');
+
+        const result = await client.query<{ campaign: any }>({
+            query: GET_CAMPAIGN_COUPONS,
+            variables: {
+                campaignId,
+                limit: 50,
+                offset: 0
+            }
+        });
+
+        const coupons = result.data?.campaign?.coupons?.data;
+
+        if (!coupons || coupons.length === 0) {
+            throw new Error('No coupons available in campaign pool');
+        }
+
+        // Find first unused coupon
+        const unusedCoupon = coupons.find((c: any) =>
+            c.usageCount === 0 || (c.usageLimit && c.usageCount < c.usageLimit)
+        );
+
+        if (!unusedCoupon) {
+            throw new Error('All available coupons in pool are used');
+        }
+
+        console.log(`✅ Found unused coupon: ${unusedCoupon.code}`);
+        return unusedCoupon.code;
+
+    } catch (error: any) {
+        console.error(`❌ Failed to get coupon from pool:`, error);
+        throw error;
+    }
+}
+
+/**
  * Get tier info by points amount
  */
 export function getTierByPoints(points: number): RedemptionTier | null {
