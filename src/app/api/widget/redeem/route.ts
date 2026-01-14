@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { randomBytes } from 'crypto';
 import { getIkas } from '@/helpers/api-helpers';
-import { getTierByPoints, getCampaignIdForPoints, addCouponToTierCampaign, ensureTierCampaign } from '@/lib/loyalty/campaign-tiers';
+import { getTierByPoints, getCampaignIdForPoints, ensureTierCampaign } from '@/lib/loyalty/campaign-tiers';
 
 export const dynamic = 'force-dynamic';
 
@@ -125,40 +124,36 @@ export async function POST(req: NextRequest) {
         }
 
         // Get unused coupon from İKAS campaign pool
+        // Get auth token
+        const authToken = await prisma.authToken.findFirst({
+            where: { deleted: false },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (!authToken) {
+            console.error('❌ No auth token found');
+            return NextResponse.json({
+                success: false,
+                error: 'Service configuration error. Please contact administrator.'
+            }, { status: 500 });
+        }
+
+        // Create İKAS GraphQL client
+        const ikasClient = getIkas(authToken as any);
+
+        // Import and fetch from coupon pool
+        const { getUnusedCouponFromPool } = await import('@/lib/loyalty/campaign-tiers');
+
         let code: string;
-        let ikasConnectionCouponCreated = false;
-
         try {
-            // Get auth token
-            const authToken = await prisma.authToken.findFirst({
-                where: { deleted: false },
-                orderBy: { createdAt: 'desc' }
-            });
-
-            if (authToken) {
-                // Create İKAS GraphQL client
-                const ikasClient = getIkas(authToken as any);
-
-                // Import getUnusedCouponFromPool function
-                const { getUnusedCouponFromPool } = await import('@/lib/loyalty/campaign-tiers');
-
-                // Fetch unused coupon from pool
-                code = await getUnusedCouponFromPool(ikasClient, campaignId);
-                ikasConnectionCouponCreated = true;
-                console.log(`✅ İKAS coupon fetched from pool: ${code} for campaign ${campaignId}`);
-            } else {
-                console.warn('⚠️ No auth token found, generating fallback coupon');
-                // Fallback: generate local coupon
-                const timestamp = Date.now().toString(36).toUpperCase();
-                const random = randomBytes(3).toString('hex').toUpperCase();
-                code = `L-${timestamp}-${random}`;
-            }
-        } catch (ikasError) {
-            console.error('❌ İKAS coupon pool fetch failed:', ikasError);
-            // Fallback: generate local coupon
-            const timestamp = Date.now().toString(36).toUpperCase();
-            const random = randomBytes(3).toString('hex').toUpperCase();
-            code = `L-${timestamp}-${random}`;
+            code = await getUnusedCouponFromPool(ikasClient, campaignId);
+            console.log(`✅ İKAS coupon fetched from pool: ${code} for campaign ${campaignId}`);
+        } catch (poolError: any) {
+            console.error('❌ İKAS coupon pool fetch failed:', poolError.message);
+            return NextResponse.json({
+                success: false,
+                error: `Unable to fetch coupon: ${poolError.message}. Please ensure coupon pools are generated in İKAS Admin Panel.`
+            }, { status: 500 });
         }
 
         // Start transaction - update balance and log redemption
@@ -181,7 +176,6 @@ export async function POST(req: NextRequest) {
                         code,
                         discountValue: tier.amount,
                         campaignId,
-                        ikasConnectionCouponCreated,
                         tier: tier.points,
                         timestamp: new Date().toISOString()
                     }
@@ -195,7 +189,7 @@ export async function POST(req: NextRequest) {
             discountValue: tier.amount,
             pointsRedeemed: pointsToRedeem,
             newBalance: updatedCustomer.points,
-            message: `${pointsToRedeem} puan kullanıldı. ${tier.amount.toFixed(2)}₺ indirim kazandınız!${!ikasConnectionCouponCreated ? ' (Kupon henüz aktif değil, lütfen daha sonra tekrar deneyin)' : ''}`
+            message: `${pointsToRedeem} puan kullanıldı. ${tier.amount.toFixed(2)}₺ indirim kazandınız!`
         });
 
     } catch (error) {
