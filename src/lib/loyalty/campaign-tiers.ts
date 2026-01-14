@@ -174,7 +174,7 @@ export async function getUnusedCouponFromPool(
     client: ikasAdminGraphQLAPIClient<any>,
     campaignId: string
 ): Promise<string> {
-    const { getUnusedCouponFromCampaign } = await import('./coupon-pool');
+    const { getUnusedCouponFromCampaign } = require('./coupon-pool');
 
     const couponCode = await getUnusedCouponFromCampaign(client, campaignId);
 

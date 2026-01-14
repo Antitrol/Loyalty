@@ -89,9 +89,9 @@ export async function redeemPoints(
     pointsToRedeem: number = 500  // Default to 500 for backwards compatibility
 ): Promise<RedemptionResult> {
     try {
-        // Import tier functions
+        // Import from campaign-tiers and attributes
         const { getCampaignIdForPoints, getUnusedCouponFromPool, getTierByPoints } =
-            await import('./campaign-tiers');
+            require('./campaign-tiers');
         const { getLoyaltyProfile } = require('./attributes');
 
         // 1. Validate tier
