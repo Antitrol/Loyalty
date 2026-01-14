@@ -1,168 +1,146 @@
 /**
- * Coupon Pool Manager
- * Manages pre-generated coupon pools from İKAS campaigns
+ * Coupon Pool Manager (Database-Based)
+ * Manages fetching and marking coupons from database pool
  */
 
-import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
-import { GET_CAMPAIGN_COUPONS } from '../graphql/rewards';
+import { prisma } from '../prisma';
 
 export interface CouponPoolStats {
     total: number;
     used: number;
     available: number;
-    sampleCoupons: Array<{
-        code: string;
-        usageCount: number;
-        usageLimit: number;
-    }>;
+    percentage: number;
 }
 
 /**
- * Fetch an unused coupon from İKAS campaign pool
- * Returns null if no unused coupons are available
+ * Get an unused coupon from database pool
+ * Returns null if no coupons available
  */
-export async function getUnusedCouponFromCampaign(
-    client: ikasAdminGraphQLAPIClient<any>,
-    campaignId: string
+export async function getUnusedCouponFromPool(
+    campaignId: string,
+    tier: number
 ): Promise<string | null> {
     try {
-        console.log(`🎫 Fetching unused coupon from campaign ${campaignId}...`);
+        console.log(`🎫 Fetching unused coupon from pool (campaign: ${campaignId}, tier: ${tier})...`);
 
-        const res = await client.query({
-            query: GET_CAMPAIGN_COUPONS,
-            variables: {
-                campaignId,
-                limit: 50,  // Fetch 50 at a time to find an unused one
-                offset: 0
+        // Find first unused coupon with atomic transaction
+        const coupon = await prisma.$transaction(async (tx) => {
+            // Find unused coupon
+            const unused = await tx.couponPool.findFirst({
+                where: {
+                    campaignId,
+                    tier,
+                    usedAt: null
+                },
+                orderBy: {
+                    createdAt: 'asc' // FIFO
+                }
+            });
+
+            if (!unused) {
+                return null;
             }
+
+            // Mark as reserved immediately (optimistic locking)
+            await tx.couponPool.update({
+                where: { id: unused.id },
+                data: {
+                    usedAt: new Date(),
+                    usedBy: 'RESERVED' // Will be updated with actual customerId later
+                }
+            });
+
+            return unused;
         });
 
-        // DEBUG: Log full response
-        console.log('📊 Full GraphQL Response:', JSON.stringify(res, null, 2));
-
-        // listCampaign returns all campaigns, find ours by ID
-        const campaigns = res.data?.listCampaign?.data || [];
-
-        console.log('📊 Total campaigns returned:', campaigns.length);
-        console.log('📊 Looking for campaign ID:', campaignId);
-
-        // Find our specific campaign
-        const campaign = campaigns.find((c: any) => c.id === campaignId);
-
-        console.log('📊 Campaign found:', !!campaign);
-        if (campaign) {
-            console.log('📊 Campaign title:', campaign.title);
-            console.log('📊 Campaign ID:', campaign.id);
-        }
-
-        if (!campaign) {
-            console.error('❌ Campaign not found in results');
-            console.error('   Looking for ID:', campaignId);
-            console.error('   Available campaign IDs:', campaigns.map((c: any) => c.id));
+        if (!coupon) {
+            console.error('❌ No unused coupons available in pool');
+            console.error(`   Campaign: ${campaignId}, Tier: ${tier}`);
             return null;
         }
 
-        const coupons = campaign.coupons?.data || [];
-
-        console.log(`📊 Coupons array length: ${coupons.length}`);
-        console.log(`📊 Total coupons in campaign: ${campaign.coupons?.total || 0}`);
-        console.log(`📊 Sample coupons:`, JSON.stringify(coupons.slice(0, 3), null, 2));
-
-        if (coupons.length === 0) {
-            console.error('❌ No coupons found in campaign pool');
-            console.error('   Campaign ID:', campaignId);
-            console.error('   Campaign title:', campaign.title);
-            console.error('   Total coupons:', campaign.coupons?.total);
-            return null;
-        }
-
-        // Find first unused coupon
-        const unused = coupons.find((c: any) =>
-            (c.usageCount || 0) < (c.usageLimit || 1)
-        );
-
-        if (!unused) {
-            console.error('❌ All coupons in sample are used. Pool may be depleted.');
-            console.error('   Sample coupons:', coupons.map((c: any) => `${c.code}: ${c.usageCount}/${c.usageLimit}`));
-            return null;
-        }
-
-        console.log(`✅ Found unused coupon: ${unused.code}`);
-        return unused.code;
+        console.log(`✅ Found unused coupon: ${coupon.code}`);
+        return coupon.code;
 
     } catch (error: any) {
         console.error('❌ Error fetching coupon from pool:', error.message);
-        console.error('   Full error:', error);
-        if (error.response?.errors) {
-            error.response.errors.forEach((err: any) => {
-                console.error(`   - ${err.message}`);
-            });
-        }
         return null;
     }
 }
 
 /**
- * Get pool statistics for monitoring
- * Useful for checking if pool needs replenishment
+ * Mark a coupon as used by a specific customer
  */
-export async function getCouponPoolStats(
-    client: ikasAdminGraphQLAPIClient<any>,
-    campaignId: string
-): Promise<CouponPoolStats | null> {
+export async function markCouponAsUsed(
+    code: string,
+    customerId: string
+): Promise<boolean> {
     try {
-        const res = await client.query({
-            query: GET_CAMPAIGN_COUPONS,
-            variables: {
-                limit: 50,
-                offset: 0
+        await prisma.couponPool.update({
+            where: { code },
+            data: {
+                usedBy: customerId,
+                usedAt: new Date()
             }
         });
 
-        const campaign = res.data?.campaign;
-        if (!campaign) {
-            return null;
-        }
+        console.log(`✅ Marked coupon ${code} as used by ${customerId}`);
+        return true;
 
-        const coupons = campaign.coupons?.data || [];
-        const total = campaign.coupons?.total || 0;
+    } catch (error: any) {
+        console.error(`❌ Failed to mark coupon ${code} as used:`, error.message);
+        return false;
+    }
+}
 
-        const used = coupons.filter((c: any) =>
-            (c.usageCount || 0) >= (c.usageLimit || 1)
-        ).length;
+/**
+ * Get pool statistics
+ */
+export async function getCouponPoolStats(
+    campaignId: string,
+    tier: number
+): Promise<CouponPoolStats> {
+    try {
+        const total = await prisma.couponPool.count({
+            where: { campaignId, tier }
+        });
 
-        const available = coupons.filter((c: any) =>
-            (c.usageCount || 0) < (c.usageLimit || 1)
-        ).length;
+        const used = await prisma.couponPool.count({
+            where: {
+                campaignId,
+                tier,
+                usedAt: { not: null }
+            }
+        });
+
+        const available = total - used;
 
         return {
             total,
             used,
             available,
-            sampleCoupons: coupons.slice(0, 5).map((c: any) => ({
-                code: c.code,
-                usageCount: c.usageCount || 0,
-                usageLimit: c.usageLimit || 1
-            }))
+            percentage: total > 0 ? Math.round((available / total) * 100) : 0
         };
 
     } catch (error: any) {
-        console.error('Error getting pool stats:', error.message);
-        return null;
+        console.error('❌ Error getting pool stats:', error.message);
+        return {
+            total: 0,
+            used: 0,
+            available: 0,
+            percentage: 0
+        };
     }
 }
 
 /**
  * Check if pool needs replenishment
- * Returns true if available coupons are low
  */
 export async function shouldReplenishPool(
-    client: ikasAdminGraphQLAPIClient<any>,
     campaignId: string,
+    tier: number,
     threshold: number = 100
 ): Promise<boolean> {
-    const stats = await getCouponPoolStats(client, campaignId);
-    if (!stats) return true;  // If can't check, assume yes
-
+    const stats = await getCouponPoolStats(campaignId, tier);
     return stats.available < threshold;
 }

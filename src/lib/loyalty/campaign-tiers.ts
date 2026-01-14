@@ -6,7 +6,6 @@
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
 import { LIST_CAMPAIGNS, CREATE_CAMPAIGN } from '../graphql/rewards';
 import { prisma } from '../prisma';
-import { getUnusedCouponFromCampaign } from './coupon-pool';
 
 export const REDEMPTION_TIERS = [
     { points: 100, amount: 1.0, field: 'campaign100Id' as const, title: 'Sadakat İndirimi - 1 TL' },
@@ -167,25 +166,6 @@ export async function addCouponToTierCampaign(
     );
 }
 
-/**
- * Get an unused coupon from İKAS campaign's coupon pool
- * Uses the coupon pool manager to fetch from pre-generated pool
- */
-export async function getUnusedCouponFromPool(
-    client: ikasAdminGraphQLAPIClient<any>,
-    campaignId: string
-): Promise<string> {
-    const couponCode = await getUnusedCouponFromCampaign(client, campaignId);
-
-    if (!couponCode) {
-        throw new Error(
-            `No unused coupons available in campaign ${campaignId}. ` +
-            'Please generate more coupons in İKAS Admin Panel.'
-        );
-    }
-
-    return couponCode;
-}
 
 /**
  * Get tier info by points amount

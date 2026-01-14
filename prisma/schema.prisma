@@ -90,3 +90,17 @@ model LoyaltySettings {
   
   updatedAt DateTime @updatedAt
 }
+
+model CouponPool {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  campaignId  String
+  tier        Int       // 100, 250, 500, 1000 points
+  usedAt      DateTime?
+  usedBy      String?   // customerId
+  createdAt   DateTime  @default(now())
+  
+  @@index([campaignId, usedAt])
+  @@index([tier, usedAt])
+  @@index([code])
+}

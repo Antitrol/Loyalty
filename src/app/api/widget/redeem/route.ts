@@ -123,36 +123,27 @@ export async function POST(req: NextRequest) {
             }, { status: 500 });
         }
 
-        // Get unused coupon from İKAS campaign pool
-        // Get auth token
-        const authToken = await prisma.authToken.findFirst({
-            where: { deleted: false },
-            orderBy: { createdAt: 'desc' }
-        });
+        // Get unused coupon from database pool
+        const { getUnusedCouponFromPool } = await import('@/lib/loyalty/coupon-pool');
 
-        if (!authToken) {
-            console.error('❌ No auth token found');
-            return NextResponse.json({
-                success: false,
-                error: 'Service configuration error. Please contact administrator.'
-            }, { status: 500 });
-        }
-
-        // Create İKAS GraphQL client
-        const ikasClient = getIkas(authToken as any);
-
-        // Import and fetch from coupon pool
-        const { getUnusedCouponFromPool } = await import('@/lib/loyalty/campaign-tiers');
-
-        let code: string;
+        let code: string | null;
         try {
-            code = await getUnusedCouponFromPool(ikasClient, campaignId);
-            console.log(`✅ İKAS coupon fetched from pool: ${code} for campaign ${campaignId}`);
+            code = await getUnusedCouponFromPool(campaignId, pointsToRedeem);
+
+            if (!code) {
+                console.error('❌ No coupons available in pool');
+                return NextResponse.json({
+                    success: false,
+                    error: `Coupon pool depleted for ${pointsToRedeem} points tier. Please contact support.`
+                }, { status: 500 });
+            }
+
+            console.log(`✅ Fetched coupon from pool: ${code}`);
         } catch (poolError: any) {
-            console.error('❌ İKAS coupon pool fetch failed:', poolError.message);
+            console.error('❌ Pool fetch error:', poolError.message);
             return NextResponse.json({
                 success: false,
-                error: `Unable to fetch coupon: ${poolError.message}. Please ensure coupon pools are generated in İKAS Admin Panel.`
+                error: `Unable to fetch coupon: ${poolError.message}`
             }, { status: 500 });
         }
 
