@@ -43,8 +43,8 @@ export const GENERATE_COUPONS = gql`
 `;
 
 export const GET_CAMPAIGN_COUPONS = gql`
-  query GetCampaignCoupons($campaignId: ID!, $limit: Int, $offset: Int) {
-    listCampaign(filter: { id: $campaignId }) {
+  query GetCampaignCoupons($limit: Int, $offset: Int) {
+    listCampaign(filter: { hasCoupon: true }) {
       data {
         id
         title

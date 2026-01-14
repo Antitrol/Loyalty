@@ -40,16 +40,25 @@ export async function getUnusedCouponFromCampaign(
         // DEBUG: Log full response
         console.log('📊 Full GraphQL Response:', JSON.stringify(res, null, 2));
 
-        // listCampaign returns an array, get first campaign
+        // listCampaign returns all campaigns, find ours by ID
         const campaigns = res.data?.listCampaign?.data || [];
-        const campaign = campaigns[0];
 
-        console.log('📊 Campaigns found:', campaigns.length);
-        console.log('📊 First campaign:', campaign);
+        console.log('📊 Total campaigns returned:', campaigns.length);
+        console.log('📊 Looking for campaign ID:', campaignId);
+
+        // Find our specific campaign
+        const campaign = campaigns.find((c: any) => c.id === campaignId);
+
+        console.log('📊 Campaign found:', !!campaign);
+        if (campaign) {
+            console.log('📊 Campaign title:', campaign.title);
+            console.log('📊 Campaign ID:', campaign.id);
+        }
 
         if (!campaign) {
-            console.error('❌ Campaign not found');
-            console.error('   Campaign ID:', campaignId);
+            console.error('❌ Campaign not found in results');
+            console.error('   Looking for ID:', campaignId);
+            console.error('   Available campaign IDs:', campaigns.map((c: any) => c.id));
             return null;
         }
 
@@ -105,8 +114,7 @@ export async function getCouponPoolStats(
         const res = await client.query({
             query: GET_CAMPAIGN_COUPONS,
             variables: {
-                campaignId,
-                limit: 100,  // Get larger sample for stats
+                limit: 50,
                 offset: 0
             }
         });
