@@ -2,7 +2,7 @@
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
 import { LIST_CAMPAIGNS, CREATE_CAMPAIGN } from '../graphql/rewards';
 import { updateLoyaltyBalance, getLoyaltyProfile } from './attributes';
-import { getCampaignIdForPoints, getUnusedCouponFromPool, getTierByPoints } from './campaign-tiers';
+import { getCampaignIdForPoints, getTierByPoints } from './campaign-tiers';
 
 // Legacy single-tier constants - kept for backwards compatibility with old code
 // New implementation uses multi-tier system from campaign-tiers.ts
