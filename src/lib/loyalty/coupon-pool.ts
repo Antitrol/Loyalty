@@ -28,7 +28,6 @@ export async function getUnusedCouponFromCampaign(
     try {
         console.log(`🎫 Fetching unused coupon from campaign ${campaignId}...`);
 
-        // Fetch batch of coupons from pool
         const res = await client.query({
             query: GET_CAMPAIGN_COUPONS,
             variables: {
@@ -38,10 +37,26 @@ export async function getUnusedCouponFromCampaign(
             }
         });
 
+        // DEBUG: Log full response
+        console.log('📊 Full GraphQL Response:', JSON.stringify(res, null, 2));
+        console.log('📊 res.data:', res.data);
+        console.log('📊 res.data?.campaign:', res.data?.campaign);
+        console.log('📊 res.data?.campaign?.coupons:', res.data?.campaign?.coupons);
+
         const coupons = res.data?.campaign?.coupons?.data || [];
+
+        console.log(`📊 Coupons array length: ${coupons.length}`);
+        console.log(`📊 Coupons array:`, JSON.stringify(coupons, null, 2));
 
         if (coupons.length === 0) {
             console.error('❌ No coupons found in campaign pool');
+            console.error('   Campaign ID:', campaignId);
+            console.error('   Response structure:', {
+                hasCampaign: !!res.data?.campaign,
+                hasCoupons: !!res.data?.campaign?.coupons,
+                couponsTotal: res.data?.campaign?.coupons?.total,
+                couponsDataLength: res.data?.campaign?.coupons?.data?.length
+            });
             return null;
         }
 
@@ -52,6 +67,7 @@ export async function getUnusedCouponFromCampaign(
 
         if (!unused) {
             console.error('❌ All coupons in sample are used. Pool may be depleted.');
+            console.error('   Sample coupons:', coupons.map((c: any) => `${c.code}: ${c.usageCount}/${c.usageLimit}`));
             return null;
         }
 
@@ -60,6 +76,7 @@ export async function getUnusedCouponFromCampaign(
 
     } catch (error: any) {
         console.error('❌ Error fetching coupon from pool:', error.message);
+        console.error('   Full error:', error);
         if (error.response?.errors) {
             error.response.errors.forEach((err: any) => {
                 console.error(`   - ${err.message}`);
