@@ -124,14 +124,51 @@ export async function POST(req: NextRequest) {
         }
 
         // Get unused coupon from database pool
-        const { getUnusedCouponFromPool } = await import('@/lib/loyalty/coupon-pool');
+        const { getUnusedCouponFromPool, getCouponPoolStats } = await import('@/lib/loyalty/coupon-pool');
+
+        // Check if pool needs initialization
+        const poolStats = await getCouponPoolStats(campaignId, pointsToRedeem);
+
+        if (poolStats.available === 0) {
+            console.log(`🔧 Pool empty for tier ${pointsToRedeem}, auto-initializing...`);
+
+            // Generate 5000 coupons
+            const batchSize = 5000;
+            const codes = [];
+            for (let i = 0; i < batchSize; i++) {
+                const timestamp = Date.now().toString(36);
+                const random = Math.random().toString(36).substring(2, 10);
+                const code = `l-${timestamp}${random}`.substring(0, 15);
+                codes.push(code);
+            }
+
+            // Store in database
+            try {
+                const result = await prisma.couponPool.createMany({
+                    data: codes.map(code => ({
+                        code,
+                        campaignId,
+                        tier: pointsToRedeem
+                    })),
+                    skipDuplicates: true
+                });
+
+                console.log(`✅ Auto-initialized pool with ${result.count} coupons`);
+            } catch (initError: any) {
+                console.error('❌ Auto-init failed:', initError.message);
+                return NextResponse.json({
+                    success: false,
+                    error: `Failed to initialize coupon pool: ${initError.message}`
+                }, { status: 500 });
+            }
+        }
 
         let code: string | null;
         try {
             code = await getUnusedCouponFromPool(campaignId, pointsToRedeem);
 
             if (!code) {
-                console.error('❌ No coupons available in pool');
+                console.error('❌ No coupons available in pool after initialization');
                 return NextResponse.json({
                     success: false,
                     error: `Coupon pool depleted for ${pointsToRedeem} points tier. Please contact support.`
