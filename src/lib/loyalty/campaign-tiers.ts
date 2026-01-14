@@ -4,7 +4,7 @@
  */
 
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
-import { LIST_CAMPAIGNS, CREATE_CAMPAIGN, ADD_COUPONS } from '../graphql/rewards';
+import { LIST_CAMPAIGNS, CREATE_CAMPAIGN } from '../graphql/rewards';
 import { prisma } from '../prisma';
 
 export const REDEMPTION_TIERS = [
@@ -148,62 +148,44 @@ export async function getCampaignIdForPoints(points: number): Promise<string | n
 }
 
 /**
- * Add coupon code to a campaign
+ * @deprecated This function is no longer used. 
+ * Coupons are now pre-generated in İKAS Admin Panel and fetched via coupon-pool.ts
+ * 
+ * Legacy function that attempted to add coupon codes to campaigns programmatically.
+ * The ADD_COUPONS mutation never worked correctly.
  */
 export async function addCouponToTierCampaign(
     client: ikasAdminGraphQLAPIClient<any>,
     campaignId: string,
     couponCode: string
 ): Promise<void> {
-    try {
-        console.log(`🎫 Adding coupon ${couponCode} to campaign ${campaignId}...`);
-
-        const result = await client.mutate<{ addCoupons: any }>({
-            mutation: ADD_COUPONS,
-            variables: {
-                input: {
-                    campaignId,
-                    coupons: [couponCode]
-                }
-            }
-        });
-
-        // Check if mutation was successful
-        if (!result.data?.addCoupons?.success) {
-            console.error('❌ addCoupons mutation failed:', result);
-            throw new Error('Failed to add coupon - mutation returned failure');
-        }
-
-        console.log(`✅ Successfully added coupon ${couponCode}`);
-    } catch (error: any) {
-        console.error(`❌ Failed to add coupon ${couponCode}:`, error);
-        console.error('Error details:', {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status
-        });
-        throw error; // Re-throw to propagate error
-    }
+    throw new Error(
+        'addCouponToTierCampaign is deprecated. ' +
+        'Coupons must be pre-generated in İKAS Admin Panel. ' +
+        'Use getUnusedCouponFromPool() instead.'
+    );
 }
 
 /**
  * Get an unused coupon from İKAS campaign's coupon pool
- * Uses existing coupons instead of trying to add new ones
+ * Uses the coupon pool manager to fetch from pre-generated pool
  */
 export async function getUnusedCouponFromPool(
     client: ikasAdminGraphQLAPIClient<any>,
     campaignId: string
 ): Promise<string> {
-    // İKAS format: l-xxxxx (11 random chars)
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let randomPart = '';
-    for (let i = 0; i < 11; i++) {
-        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const code = `l-${randomPart}`;
+    const { getUnusedCouponFromCampaign } = await import('./coupon-pool');
 
-    console.log(`✅ Generated İKAS coupon: ${code}`);
-    return code;
+    const couponCode = await getUnusedCouponFromCampaign(client, campaignId);
+
+    if (!couponCode) {
+        throw new Error(
+            `No unused coupons available in campaign ${campaignId}. ` +
+            'Please generate more coupons in İKAS Admin Panel.'
+        );
+    }
+
+    return couponCode;
 }
 
 /**

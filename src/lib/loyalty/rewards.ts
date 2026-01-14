@@ -1,11 +1,11 @@
 
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
-import { LIST_CAMPAIGNS, CREATE_CAMPAIGN, ADD_COUPONS } from '../graphql/rewards';
+import { LIST_CAMPAIGNS, CREATE_CAMPAIGN } from '../graphql/rewards';
 import { updateLoyaltyBalance } from './attributes';
-import { randomBytes } from 'crypto';
 
+// Legacy single-tier constants - kept for backwards compatibility with old code
+// New implementation uses multi-tier system from campaign-tiers.ts
 const CAMPAIGN_TITLE = "Loyalty Reward 50TL";
-// 500 Points = 50 TL
 const POINTS_REQUIRED = 500;
 const REWARD_AMOUNT = 50.0;
 
@@ -78,61 +78,84 @@ async function ensureLoyaltyCampaign(client: ikasAdminGraphQLAPIClient<any>): Pr
 }
 
 /**
- * Redeems points for a discount code.
+ * Redeems points for a discount code from appropriate tier campaign
+ * @param client İKAS API client
+ * @param customerId Customer ID
+ * @param pointsToRedeem Points amount to redeem (must match a tier: 100, 250, 500, or 1000)
  */
 export async function redeemPoints(
     client: ikasAdminGraphQLAPIClient<any>,
-    customerId: string
+    customerId: string,
+    pointsToRedeem: number = 500  // Default to 500 for backwards compatibility
 ): Promise<RedemptionResult> {
     try {
-        // 1. Burn Points (Transaction)
-        // We deduct first. If campaign creation fails, we technically assume rollback needed.
-        // For MVP, we deduct and then if fail, we might throw.
-        // Ideally, check balance first (peek), then ensure campaign, then burn, then generate.
-
-        // 2. Ensure Campaign (Idempotent)
-        const campaignId = await ensureLoyaltyCampaign(client);
-
-        // 3. Burn Points
-        // updateLoyaltyBalance checks current balance inside it? No, it just adds delta.
-        // We should check balance first.
-
-        // We'll rely on updateLoyaltyBalance logic. 
-        // But wait, attributes.ts just adds delta. It doesn't check for negative balance.
-        // We should explicitly check balance.
-
+        // Import tier functions
+        const { getCampaignIdForPoints, getUnusedCouponFromPool, getTierByPoints } =
+            await import('./campaign-tiers');
         const { getLoyaltyProfile } = require('./attributes');
-        const profile = await getLoyaltyProfile(client, customerId);
 
-        if (!profile || profile.pointsBalance < POINTS_REQUIRED) {
-            return { success: false, error: "Insufficient points" };
+        // 1. Validate tier
+        const tier = getTierByPoints(pointsToRedeem);
+        if (!tier) {
+            return {
+                success: false,
+                error: `Invalid redemption amount. Must be 100, 250, 500, or 1000 points.`
+            };
         }
 
-        // Burn
-        const newProfile = await updateLoyaltyBalance(client, customerId, -POINTS_REQUIRED);
-        if (!newProfile) throw new Error("Failed to update balance");
+        // 2. Check customer balance
+        const profile = await getLoyaltyProfile(client, customerId);
+        if (!profile || profile.pointsBalance < pointsToRedeem) {
+            return {
+                success: false,
+                error: `Insufficient points. Required: ${pointsToRedeem}, Available: ${profile?.pointsBalance || 0}`
+            };
+        }
 
-        // 4. Generate Code
-        const code = `LOYALTY-50-${randomBytes(3).toString('hex').toUpperCase()}`;
+        // 3. Get campaign ID for this tier
+        const campaignId = await getCampaignIdForPoints(pointsToRedeem);
+        if (!campaignId) {
+            return {
+                success: false,
+                error: `Campaign not configured for ${pointsToRedeem} points tier. Please run campaign setup.`
+            };
+        }
 
-        const mutation = ADD_COUPONS;
-        const input = {
-            campaignId,
-            coupons: [code]
-        };
+        // 4. Fetch unused coupon from pool
+        let couponCode: string;
+        try {
+            couponCode = await getUnusedCouponFromPool(client, campaignId);
+        } catch (poolError: any) {
+            console.error('Coupon pool error:', poolError.message);
+            return {
+                success: false,
+                error: `Unable to fetch coupon: ${poolError.message}`
+            };
+        }
 
-        await client.mutate<{ addCouponsToCampaign: any }>({ mutation, variables: { input } });
+        // 5. Burn points (after we know coupon is available)
+        const newProfile = await updateLoyaltyBalance(client, customerId, -pointsToRedeem);
+        if (!newProfile) {
+            return {
+                success: false,
+                error: "Failed to update points balance"
+            };
+        }
+
+        console.log(`✅ Redeemed ${pointsToRedeem} points for coupon: ${couponCode}`);
 
         return {
             success: true,
-            code,
+            code: couponCode,
             remainingPoints: newProfile.pointsBalance
         };
 
     } catch (e: any) {
         console.error("Redeem Error:", e.message);
-        // TODO: Rollback points if coupon fails?
-        // simple rollback: await updateLoyaltyBalance(client, customerId, POINTS_REQUIRED);
+
+        // TODO: Implement proper rollback mechanism
+        // For now, just return error - points may need manual restoration
+
         return { success: false, error: e.message };
     }
 }

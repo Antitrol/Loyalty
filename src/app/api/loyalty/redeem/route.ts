@@ -10,10 +10,19 @@ import { LocalDB } from '@/lib/db/local-db';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { customerId } = body;
+        const { customerId, pointsToRedeem = 500 } = body;
 
         if (!customerId) {
             return NextResponse.json({ success: false, message: 'customerId is required' }, { status: 400 });
+        }
+
+        // Validate tier selection
+        const validTiers = [100, 250, 500, 1000];
+        if (!validTiers.includes(pointsToRedeem)) {
+            return NextResponse.json({
+                success: false,
+                message: `Invalid points amount. Must be one of: ${validTiers.join(', ')}`
+            }, { status: 400 });
         }
 
         const tokens = await AuthTokenManager.list();
@@ -23,7 +32,8 @@ export async function POST(req: NextRequest) {
 
         const client = getIkas(tokens[0]);
 
-        const result = await redeemPoints(client, customerId);
+        // Use new pool-based redemption
+        const result = await redeemPoints(client, customerId, pointsToRedeem);
 
         if (!result.success) {
             return NextResponse.json({ success: false, message: result.error }, { status: 400 });
@@ -33,20 +43,24 @@ export async function POST(req: NextRequest) {
         if (result.code) {
             const profile = await getLoyaltyProfile(client, customerId);
             const email = profile?.email || "customer@example.com";
-            NotificationService.sendRewardRedeemed(email, result.code, 50).catch(console.error);
+
+            // Calculate discount amount based on tier
+            const discountAmount = pointsToRedeem / 10; // 100 points = 10 TL, etc.
+            NotificationService.sendRewardRedeemed(email, result.code, discountAmount).catch(console.error);
 
             // Log Transaction
             LocalDB.logTransaction({
                 customerId,
                 type: 'REDEEM',
-                points: 500,
-                amount: 50
+                points: pointsToRedeem,
+                amount: discountAmount
             }).catch(console.error);
         }
 
         return NextResponse.json({
             success: true,
             code: result.code,
+            pointsRedeemed: pointsToRedeem,
             remainingPoints: result.remainingPoints
         });
 
