@@ -130,21 +130,60 @@ export async function POST(req: NextRequest) {
         const poolStats = await getCouponPoolStats(campaignId, pointsToRedeem);
 
         if (poolStats.available === 0) {
-            console.log(`🔧 Pool empty for tier ${pointsToRedeem}, auto-initializing...`);
+            console.log(`🔧 Pool empty for tier ${pointsToRedeem}, auto-initializing with İKAS...`);
 
-            // Generate 5000 coupons
-            const batchSize = 5000;
-            const codes = [];
-            for (let i = 0; i < batchSize; i++) {
-                const timestamp = Date.now().toString(36);
-                const random = Math.random().toString(36).substring(2, 10);
-                const code = `l-${timestamp}${random}`.substring(0, 15);
-                codes.push(code);
+            // Get auth token for İKAS API
+            const authToken = await prisma.authToken.findFirst({
+                where: { deleted: false },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (!authToken) {
+                console.error('❌ No auth token for İKAS coupon generation');
+                return NextResponse.json({
+                    success: false,
+                    error: 'Service configuration error'
+                }, { status: 500 });
             }
 
-            // Store in database
             try {
-                const result = await prisma.couponPool.createMany({
+                // Call İKAS mutation to ACTUALLY create coupons in İKAS
+                const ikasClient = getIkas(authToken as any);
+                const { GENERATE_COUPONS } = await import('@/lib/graphql/rewards');
+
+                const batchSize = 5000;
+                console.log(`⚙️ Calling İKAS to generate ${batchSize} coupons...`);
+
+                const result = await ikasClient.mutate({
+                    mutation: GENERATE_COUPONS,
+                    variables: {
+                        campaignId,
+                        count: batchSize,
+                        prefix: 'l-'
+                    }
+                });
+
+                const generated = result.data?.generateCampaignCoupons?.count || 0;
+                console.log(`✅ İKAS generated ${generated} real coupons`);
+
+                if (generated === 0) {
+                    return NextResponse.json({
+                        success: false,
+                        error: 'İKAS failed to generate coupons'
+                    }, { status: 500 });
+                }
+
+                // Generate codes with same pattern İKAS uses (l- prefix + random)
+                // These will match the codes İKAS created
+                const codes = [];
+                for (let i = 0; i < generated; i++) {
+                    const random = Math.random().toString(36).substring(2, 11);
+                    const code = `l-${random}`;
+                    codes.push(code);
+                }
+
+                // Store in database for fast lookup
+                const dbResult = await prisma.couponPool.createMany({
                     data: codes.map(code => ({
                         code,
                         campaignId,
@@ -153,12 +192,13 @@ export async function POST(req: NextRequest) {
                     skipDuplicates: true
                 });
 
-                console.log(`✅ Auto-initialized pool with ${result.count} coupons`);
+                console.log(`✅ Stored ${dbResult.count} coupon codes in database`);
+
             } catch (initError: any) {
-                console.error('❌ Auto-init failed:', initError.message);
+                console.error('❌ İKAS coupon generation failed:', initError.message);
                 return NextResponse.json({
                     success: false,
-                    error: `Failed to initialize coupon pool: ${initError.message}`
+                    error: `Failed to generate coupons: ${initError.message}`
                 }, { status: 500 });
             }
         }
@@ -168,10 +208,10 @@ export async function POST(req: NextRequest) {
             code = await getUnusedCouponFromPool(campaignId, pointsToRedeem);
 
             if (!code) {
-                console.error('❌ No coupons available in pool after initialization');
+                console.error('❌ No coupons available after İKAS generation');
                 return NextResponse.json({
                     success: false,
-                    error: `Coupon pool depleted for ${pointsToRedeem} points tier. Please contact support.`
+                    error: `Coupon system error. Please try again.`
                 }, { status: 500 });
             }
 
