@@ -39,24 +39,31 @@ export async function getUnusedCouponFromCampaign(
 
         // DEBUG: Log full response
         console.log('📊 Full GraphQL Response:', JSON.stringify(res, null, 2));
-        console.log('📊 res.data:', res.data);
-        console.log('📊 res.data?.campaign:', res.data?.campaign);
-        console.log('📊 res.data?.campaign?.coupons:', res.data?.campaign?.coupons);
 
-        const coupons = res.data?.campaign?.coupons?.data || [];
+        // listCampaign returns an array, get first campaign
+        const campaigns = res.data?.listCampaign?.data || [];
+        const campaign = campaigns[0];
+
+        console.log('📊 Campaigns found:', campaigns.length);
+        console.log('📊 First campaign:', campaign);
+
+        if (!campaign) {
+            console.error('❌ Campaign not found');
+            console.error('   Campaign ID:', campaignId);
+            return null;
+        }
+
+        const coupons = campaign.coupons?.data || [];
 
         console.log(`📊 Coupons array length: ${coupons.length}`);
-        console.log(`📊 Coupons array:`, JSON.stringify(coupons, null, 2));
+        console.log(`📊 Total coupons in campaign: ${campaign.coupons?.total || 0}`);
+        console.log(`📊 Sample coupons:`, JSON.stringify(coupons.slice(0, 3), null, 2));
 
         if (coupons.length === 0) {
             console.error('❌ No coupons found in campaign pool');
             console.error('   Campaign ID:', campaignId);
-            console.error('   Response structure:', {
-                hasCampaign: !!res.data?.campaign,
-                hasCoupons: !!res.data?.campaign?.coupons,
-                couponsTotal: res.data?.campaign?.coupons?.total,
-                couponsDataLength: res.data?.campaign?.coupons?.data?.length
-            });
+            console.error('   Campaign title:', campaign.title);
+            console.error('   Total coupons:', campaign.coupons?.total);
             return null;
         }
 
