@@ -1,7 +1,8 @@
 
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
 import { LIST_CAMPAIGNS, CREATE_CAMPAIGN } from '../graphql/rewards';
-import { updateLoyaltyBalance } from './attributes';
+import { updateLoyaltyBalance, getLoyaltyProfile } from './attributes';
+import { getCampaignIdForPoints, getUnusedCouponFromPool, getTierByPoints } from './campaign-tiers';
 
 // Legacy single-tier constants - kept for backwards compatibility with old code
 // New implementation uses multi-tier system from campaign-tiers.ts
@@ -89,11 +90,6 @@ export async function redeemPoints(
     pointsToRedeem: number = 500  // Default to 500 for backwards compatibility
 ): Promise<RedemptionResult> {
     try {
-        // Import from campaign-tiers and attributes
-        const { getCampaignIdForPoints, getUnusedCouponFromPool, getTierByPoints } =
-            require('./campaign-tiers');
-        const { getLoyaltyProfile } = require('./attributes');
-
         // 1. Validate tier
         const tier = getTierByPoints(pointsToRedeem);
         if (!tier) {

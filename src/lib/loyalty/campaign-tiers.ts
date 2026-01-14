@@ -6,6 +6,7 @@
 import { ikasAdminGraphQLAPIClient } from '../ikas-client/generated/graphql';
 import { LIST_CAMPAIGNS, CREATE_CAMPAIGN } from '../graphql/rewards';
 import { prisma } from '../prisma';
+import { getUnusedCouponFromCampaign } from './coupon-pool';
 
 export const REDEMPTION_TIERS = [
     { points: 100, amount: 1.0, field: 'campaign100Id' as const, title: 'Sadakat İndirimi - 1 TL' },
@@ -174,8 +175,6 @@ export async function getUnusedCouponFromPool(
     client: ikasAdminGraphQLAPIClient<any>,
     campaignId: string
 ): Promise<string> {
-    const { getUnusedCouponFromCampaign } = require('./coupon-pool');
-
     const couponCode = await getUnusedCouponFromCampaign(client, campaignId);
 
     if (!couponCode) {
