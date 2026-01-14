@@ -117,10 +117,19 @@ export async function redeemPoints(
             };
         }
 
-        // 4. Fetch unused coupon from pool
-        let couponCode: string;
+        // 4. Fetch unused coupon from database pool
+        const { getUnusedCouponFromPool } = await import('./coupon-pool');
+
+        let couponCode: string | null;
         try {
-            couponCode = await getUnusedCouponFromPool(client, campaignId);
+            couponCode = await getUnusedCouponFromPool(campaignId, pointsToRedeem);
+
+            if (!couponCode) {
+                return {
+                    success: false,
+                    error: `No coupons available in pool for ${pointsToRedeem} points tier.`
+                };
+            }
         } catch (poolError: any) {
             console.error('Coupon pool error:', poolError.message);
             return {
