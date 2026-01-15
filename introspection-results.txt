@@ -1,0 +1,110 @@
+﻿­şöı ─░KAS GraphQL API Schema Discovery
+
+================================================================================
+
+node.exe : 
+At line:1 char:1
++ & "C:\Program Files\
+nodejs/node.exe" "C:\P
+rogram Files\nodejs/no
+de_mo ...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (:String) [   
+ ], RemoteExceptio    
+n
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+ÔØî Fatal Error: 
+Invalid `prisma.authTo
+ken.findFirst()` invoc
+ation in
+C:\Users\Administrator
+\Desktop\─░kas\loyalty
+-app-v2\introspect-ika
+s-api.ts:84:50
+
+  81 
+  82 try {
+  83     // Get auth t
+oken
+ÔåÆ 84     const authT
+oken = await prisma.au
+thToken.findFirst(
+Can't reach database s
+erver at `db.gugulhmcb
+plazagktrmt.supabase.c
+o:5432`
+
+Please make sure your 
+database server is run
+ning at `db.gugulhmcbp
+lazagktrmt.supabase.co
+:5432`.
+PrismaClientInitializa
+tionError: 
+Invalid `prisma.authTo
+ken.findFirst()` invoc
+ation in
+C:\Users\Administrator
+\Desktop\─░kas\loyalty
+-app-v2\introspect-ika
+s-api.ts:84:50
+
+  81 
+  82 try {
+  83     // Get auth t
+oken
+ÔåÆ 84     const authT
+oken = await prisma.au
+thToken.findFirst(
+Can't reach database s
+erver at `db.gugulhmcb
+plazagktrmt.supabase.c
+o:5432`
+
+Please make sure your 
+database server is run
+ning at `db.gugulhmcbp
+lazagktrmt.supabase.co
+:5432`.
+    at ei.handleReques
+tError (C:\Users\Admin
+istrator\Desktop\─░kas
+\loyalty-app-v2\node_m
+odules\@prisma\client\
+src\runtime\RequestHan
+dler.ts:242:13)
+    at ei.handleAndLog
+RequestError (C:\Users
+\Administrator\Desktop
+\─░kas\loyalty-app-v2\
+node_modules\@prisma\c
+lient\src\runtime\Requ
+estHandler.ts:174:12)
+    at ei.request (C:\
+Users\Administrator\De
+sktop\─░kas\loyalty-ap
+p-v2\node_modules\@pri
+sma\client\src\runtime
+\RequestHandler.ts:143
+:12)
+    at async a (C:\Use
+rs\Administrator\Deskt
+op\─░kas\loyalty-app-v
+2\node_modules\@prisma
+\client\src\runtime\ge
+tPrismaClient.ts:833:2
+4)
+    at async introspec
+tIkasAPI (C:\Users\Adm
+inistrator\Desktop\─░k
+as\loyalty-app-v2\intr
+ospect-ikas-api.ts:84:
+27)
