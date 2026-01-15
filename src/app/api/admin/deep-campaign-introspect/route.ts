@@ -133,16 +133,17 @@ export async function GET(req: NextRequest) {
         results.potentialCouponLocations = nestedTypeDetails;
 
         // Also check for Connection/Edge patterns (GraphQL pagination)
-        const COUPON_TYPES_SEARCH = gqlquery {
-            __schema {
-                types {
-                    name
+        const COUPON_TYPES_SEARCH = gql`
+            query {
+                __schema {
+                    types {
+                        name
                         description
                         kind
+                    }
                 }
-    }
             }
-`;
+        `;
 
         const schemaResult = await ikasClient.query({
             query: COUPON_TYPES_SEARCH
