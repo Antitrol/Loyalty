@@ -28,7 +28,7 @@ export async function GET() {
             });
         }
 
-        results.push({ step: 'Get Token', status: 'success', data: { merchantId: token.merchantId } }); // Modified line
+        log.push(`✅ Token found for store: ${token.merchantId}`);
         log.push('');
 
         // Check mutations
