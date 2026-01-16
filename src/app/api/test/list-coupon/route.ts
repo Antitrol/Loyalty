@@ -26,7 +26,7 @@ export async function GET() {
 
             if (token) {
                 accessToken = token.accessToken;
-                log.push(`✅ Token found from database`);
+                log.push(`✅ Token found for store: ${token.merchantId}`);
             }
         } catch (dbError: any) {
             log.push(`⚠️ Database unavailable (expected in local): ${dbError.message.split('\n')[0]}`);
