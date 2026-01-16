@@ -5,6 +5,18 @@ import { syncCouponsFromIKAS, checkCampaignCoupons } from '@/lib/loyalty/coupon-
 
 export const dynamic = 'force-dynamic';
 
+// CORS headers
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Handle OPTIONS request for CORS
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
+
 /**
  * Admin Sync Coupons Endpoint
  * Manually sync coupons from İKAS campaigns to database pool
@@ -70,14 +82,14 @@ export async function POST(req: NextRequest) {
             campaignStatus,
             poolStats: stats,
             message: `Successfully synced ${synced} coupons from İKAS`
-        });
+        }, { headers: corsHeaders });
 
     } catch (error: any) {
         console.error('Admin sync error:', error);
         return NextResponse.json({
             success: false,
             error: error.message || 'Internal server error'
-        }, { status: 500 });
+        }, { status: 500, headers: corsHeaders });
     }
 }
 
