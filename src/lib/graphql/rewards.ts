@@ -60,3 +60,31 @@ export const GET_CAMPAIGN_COUPONS = gql`
     }
   }
 `;
+
+/**
+ * LIST_COUPONS - Correct İKAS API query
+ * Based on İKAS GraphQL API v2 exploration
+ * Supports campaignId filtering and pagination
+ */
+export const LIST_COUPONS = gql`
+  query ListCoupons($campaignId: StringFilterInput, $pagination: PaginationInput, $includeDeleted: Boolean) {
+    listCoupon(campaignId: $campaignId, pagination: $pagination, includeDeleted: $includeDeleted) {
+      count
+      hasNext
+      limit
+      page
+      data {
+        id
+        code
+        campaignId
+        usageCount
+        usageLimit
+        usageLimitPerCustomer
+        applicableCustomerId
+        createdAt
+        updatedAt
+        deleted
+      }
+    }
+  }
+`;

@@ -91,10 +91,10 @@ export async function GET() {
         log.push(`✅ Found GENERATE mutations: ${generateMutations.join(', ') || 'NONE'}`);
         log.push('');
 
-        // Step 3: Test listCoupon query
+        // Step 3: Test listCoupon query (correct İKAS API v2 structure)
         log.push('Step 3: Testing listCoupon query...');
 
-        const listCouponResponse = await fetch('https://api.myikas.com/api/v1/admin/graphql', {
+        const listCouponResponse = await fetch('https://api.myikas.com/api/v2/admin/graphql', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -103,17 +103,19 @@ export async function GET() {
             body: JSON.stringify({
                 query: `
           query {
-            listCoupon(pagination: { limit: 5 }) {
+            listCoupon(pagination: { limit: 10, page: 1 }) {
+              count
+              hasNext
+              limit
+              page
               data {
                 id
                 code
                 campaignId
-                isUsed
-                usedAt
-              }
-              pageInfo {
-                totalCount
-                hasNextPage
+                usageCount
+                usageLimit
+                deleted
+                createdAt
               }
             }
           }
@@ -125,78 +127,62 @@ export async function GET() {
 
         if (couponData.errors) {
             log.push(`❌ listCoupon error: ${couponData.errors[0].message}`);
-            log.push('');
-            log.push('Trying alternative query structure...');
-
-            // Try simpler version
-            const simpleResponse = await fetch('https://api.myikas.com/api/v1/admin/graphql', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    query: `
-            query {
-              listCoupon {
-                id
-                code
-              }
-            }
-          `
-                })
-            });
-
-            const simpleData = await simpleResponse.json();
-
-            if (simpleData.errors) {
-                log.push(`❌ Alternative also failed: ${simpleData.errors[0].message}`);
-
-                return NextResponse.json({
-                    success: false,
-                    error: simpleData.errors[0].message,
-                    log,
-                    generateMutations
-                });
-            }
-
-            log.push(`✅ Alternative query worked!`);
-            log.push(`   Fetched: ${JSON.stringify(simpleData.data, null, 2)}`);
 
             return NextResponse.json({
-                success: true,
-                viable: true,
-                coupons: simpleData.data.listCoupon,
-                generateMutations,
+                success: false,
+                error: couponData.errors[0].message,
                 log,
-                conclusion: 'listCoupon works! We CAN fetch coupon codes!'
+                generateMutations
             });
         }
 
         const coupons = couponData.data?.listCoupon;
 
+        if (!coupons) {
+            log.push('❌ No coupon data received');
+            return NextResponse.json({
+                success: false,
+                error: 'No coupon data in response',
+                log,
+                rawResponse: couponData
+            });
+        }
+
         log.push(`🎉 SUCCESS! listCoupon query works!`);
-        log.push(`   Total coupons: ${coupons?.pageInfo?.totalCount || coupons?.data?.length || 'unknown'}`);
-        log.push(`   Sample: ${JSON.stringify(coupons?.data?.slice(0, 2) || [], null, 2)}`);
+        log.push(`   Total coupons: ${coupons.count}`);
+        log.push(`   Current page: ${coupons.page}/${coupons.hasNext ? 'more...' : 'last'}`);
+        log.push(`   Fetched: ${coupons.data?.length || 0} coupons`);
         log.push('');
+
+        if (coupons.data && coupons.data.length > 0) {
+            log.push(`   Sample codes: ${coupons.data.slice(0, 3).map((c: any) => c.code).join(', ')}`);
+            log.push('');
+        }
+
         log.push('✅✅✅ SOLUTION FOUND! ✅✅✅');
         log.push('');
         log.push('We CAN retrieve coupon codes via listCoupon!');
-        log.push('This means Option A is SOLVED!');
+        log.push('This solves our problem completely!');
         log.push('');
         log.push('Next steps:');
-        log.push('1. Use listCoupon to fetch existing codes');
-        log.push('2. Store in database pool');
+        log.push('1. Filter by campaignId to get specific campaign codes');
+        log.push('2. Store unused codes in database pool');
         log.push('3. Widget redeems from pool');
+        log.push('4. Mark codes as used after redemption');
 
         return NextResponse.json({
             success: true,
             viable: true,
-            coupons: coupons?.data || coupons,
-            totalCount: coupons?.pageInfo?.totalCount,
+            coupons: coupons.data,
+            totalCount: coupons.count,
+            pagination: {
+                page: coupons.page,
+                limit: coupons.limit,
+                hasNext: coupons.hasNext
+            },
             generateMutations,
             log,
-            conclusion: 'PROBLEM SOLVED! We can fetch coupon codes via listCoupon query!'
+            conclusion: 'PROBLEM SOLVED! listCoupon query works perfectly with İKAS API v2!'
         });
 
     } catch (error: any) {
