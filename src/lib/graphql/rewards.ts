@@ -60,10 +60,13 @@ export const GET_CAMPAIGN_COUPONS = gql`
     }
   }
 `;
-
 /**
  * LIST_COUPONS - Correct İKAS API query
- * Based on İKAS GraphQL API v2 exploration
+ * Based on İKAS GraphQL API exploration
+ * 
+ * IMPORTANT: Must use endpoint: /api/admin/graphql?op=listCoupon
+ * NOT /api/v2/admin/graphql!
+ * 
  * Supports campaignId filtering and pagination
  */
 export const LIST_COUPONS = gql`
