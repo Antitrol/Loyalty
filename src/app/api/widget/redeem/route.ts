@@ -147,58 +147,34 @@ export async function POST(req: NextRequest) {
             }
 
             try {
-                // Call İKAS mutation to ACTUALLY create coupons in İKAS
+                // Fetch real existing coupons from İKAS and sync to database
                 const ikasClient = getIkas(authToken as any);
-                const { GENERATE_COUPONS } = await import('@/lib/graphql/rewards');
+                const { syncCouponsFromIKAS } = await import('@/lib/loyalty/coupon-sync');
 
-                const batchSize = 5000;
-                console.log(`⚙️ Calling İKAS to generate ${batchSize} coupons...`);
+                const batchSize = 1000;
+                console.log(`⚙️ Syncing ${batchSize} existing coupons from İKAS campaign...`);
 
-                const result = await ikasClient.mutate({
-                    mutation: GENERATE_COUPONS,
-                    variables: {
-                        campaignId,
-                        count: batchSize,
-                        prefix: 'l-'
-                    }
-                });
+                const synced = await syncCouponsFromIKAS(
+                    ikasClient,
+                    campaignId,
+                    pointsToRedeem,
+                    batchSize
+                );
 
-                const generated = result.data?.generateCampaignCoupons?.count || 0;
-                console.log(`✅ İKAS generated ${generated} real coupons`);
+                console.log(`✅ Synced ${synced} coupons from İKAS to pool`);
 
-                if (generated === 0) {
+                if (synced === 0) {
                     return NextResponse.json({
                         success: false,
-                        error: 'İKAS failed to generate coupons'
+                        error: 'No coupons available in İKAS campaign. Please create coupons manually in İKAS admin panel first.'
                     }, { status: 500 });
                 }
 
-                // Generate codes with same pattern İKAS uses (l- prefix + random)
-                // These will match the codes İKAS created
-                const codes = [];
-                for (let i = 0; i < generated; i++) {
-                    const random = Math.random().toString(36).substring(2, 11);
-                    const code = `l-${random}`;
-                    codes.push(code);
-                }
-
-                // Store in database for fast lookup
-                const dbResult = await prisma.couponPool.createMany({
-                    data: codes.map(code => ({
-                        code,
-                        campaignId,
-                        tier: pointsToRedeem
-                    })),
-                    skipDuplicates: true
-                });
-
-                console.log(`✅ Stored ${dbResult.count} coupon codes in database`);
-
-            } catch (initError: any) {
-                console.error('❌ İKAS coupon generation failed:', initError.message);
+            } catch (syncError: any) {
+                console.error('❌ İKAS coupon sync failed:', syncError.message);
                 return NextResponse.json({
                     success: false,
-                    error: `Failed to generate coupons: ${initError.message}`
+                    error: `Failed to sync coupons from İKAS: ${syncError.message}`
                 }, { status: 500 });
             }
         }
