@@ -5,6 +5,17 @@ import { JwtHelpers } from '@/helpers/jwt-helpers';
 
 export const dynamic = 'force-dynamic';
 
+// CORS headers
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function GET(req: NextRequest) {
     try {
         const authHeader = req.headers.get('Authorization');
@@ -100,6 +111,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(settings);
     } catch (error: any) {
         console.error('❌ Settings POST error:', error);
-        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 });
+        return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500, headers: corsHeaders });
     }
 }
+
+// PUT is same as POST
+export const PUT = POST;
